@@ -1,73 +1,68 @@
-import * as fsPromises from "fs/promises";
-import copy from "rollup-plugin-copy";
-import scss from "rollup-plugin-scss";
-import { defineConfig, Plugin } from "vite";
+import { cp, readFile, writeFile } from "node:fs/promises";
+import { defineConfig, type Plugin } from "vite";
 
-const moduleVersion = process.env.MODULE_VERSION;
-const githubProject = process.env.GH_PROJECT;
-const githubTag = process.env.GH_TAG;
+const moduleId = "sf2e-utils";
+const devServerOrigin = "http://localhost:30001";
+const basePath = `/modules/${moduleId}/`;
 
-console.log(process.env.VSCODE_INJECTION);
+async function writeManifest(useDevEntry: boolean): Promise<void> {
+  const manifest = JSON.parse(
+    await readFile("src/module.json", "utf-8"),
+  ) as Record<string, unknown>;
 
-export default defineConfig({
-  build: {
-    sourcemap: true,
-    rollupOptions: {
-      input: "src/ts/module.ts",
-      output: {
-        dir: "dist",
-        entryFileNames: "scripts/module.js",
-        format: "es",
-      },
-    },
-  },
-  plugins: [
-    updateModuleManifestPlugin(),
-    scss({
-      output: "dist/style.css",
-      sourceMap: true,
-      watch: ["src/styles/*.scss"],
-    }),
-    copy({
-      targets: [
-        { src: "src/languages", dest: "dist" },
-        { src: "src/templates", dest: "dist" },
-      ],
-      hook: "writeBundle",
-    }),
-  ],
-});
+  if (process.env.MODULE_VERSION) {
+    manifest.version = process.env.MODULE_VERSION;
+  }
 
-function updateModuleManifestPlugin(): Plugin {
+  // Foundry reads module.json from dist. In dev we point at Vite's served entry.
+  manifest.esmodules = useDevEntry
+    ? [`${devServerOrigin}${basePath}scripts/module.js`]
+    : ["scripts/module.js"];
+  manifest.styles = ["style.css"];
+
+  await writeFile("dist/module.json", `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+function copyFoundryFiles(): Plugin {
   return {
-    name: "update-module-manifest",
-    async writeBundle(): Promise<void> {
-      const packageContents = JSON.parse(
-        await fsPromises.readFile("./package.json", "utf-8")
-      ) as Record<string, unknown>;
-      const version = moduleVersion || (packageContents.version as string);
-      const manifestContents: string = await fsPromises.readFile(
-        "src/module.json",
-        "utf-8"
-      );
-      const manifestJson = JSON.parse(manifestContents) as Record<
-        string,
-        unknown
-      >;
-      manifestJson["version"] = version;
-      if (githubProject) {
-        const baseUrl = `https://github.com/${githubProject}/releases`;
-        manifestJson["manifest"] = `${baseUrl}/latest/download/module.json`;
-        if (githubTag) {
-          manifestJson[
-            "download"
-          ] = `${baseUrl}/download/${githubTag}/module.zip`;
-        }
-      }
-      await fsPromises.writeFile(
-        "dist/module.json",
-        JSON.stringify(manifestJson, null, 4)
-      );
+    name: "copy-foundry-files",
+    async configureServer() {
+      await cp("src/languages", "dist/languages", { recursive: true });
+      await cp("src/templates", "dist/templates", { recursive: true });
+      await writeManifest(true);
+    },
+    async closeBundle() {
+      await cp("src/languages", "dist/languages", { recursive: true });
+      await cp("src/templates", "dist/templates", { recursive: true });
+      await writeManifest(false);
     },
   };
 }
+
+export default defineConfig({
+  root: "src",
+  base: basePath,
+  server: {
+    host: true,
+    port: 30001,
+    strictPort: true,
+    cors: true,
+    hmr: {
+      host: "localhost",
+      port: 30001,
+      clientPort: 30001,
+    },
+  },
+  build: {
+    outDir: "../dist",
+    emptyOutDir: true,
+    sourcemap: true,
+      lib: {
+        entry: "ts/module.ts",
+        formats: ["es"],
+        fileName: () => "scripts/module.js",
+        cssFileName: "style",
+      },
+    },
+  plugins: [copyFoundryFiles()],
+});

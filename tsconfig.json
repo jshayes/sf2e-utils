@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "types": ["foundry-pf2e", "jquery", "tooltipster"],
+    "types": ["foundry-pf2e", "jquery", "tooltipster", "vite/client"],
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
