@@ -1,7 +1,7 @@
 {
-  "name": "foundry-module-ts",
+  "name": "sf2e-utils",
   "version": "1.0.0",
-  "description": "A template project for FoundryVTT modules using Typescript",
+  "description": "A collection of utils and modifications for my sf2e jawn",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -9,11 +9,13 @@
     "watch": "tsc && vite build --watch"
   },
   "devDependencies": {
-    "@league-of-foundry-developers/foundry-vtt-types": "^9.280.0",
+    "@foundryvtt/foundryvtt-cli": "^3.0.3",
+    "foundry-pf2e": "github:7H3LaughingMan/foundry-pf2e#v13",
     "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-scss": "^3.0.0",
     "sass": "^1.54.8",
-    "typescript": "^4.8.2",
+    "typescript": "5.9.3",
     "vite": "^3.2.7"
-  }
+  },
+  "dependencies": {}
 }

@@ -1,19 +1,19 @@
 import { moduleId } from "../constants";
 
-export default class DogBrowser extends Application {
+export default class DogBrowser extends foundry.appv1.api.Application {
   private imageUrl? = "";
 
   override get title(): string {
-    return (game as Game).i18n.localize("MYMODULE.dog-browser");
+    return game.i18n.localize("sf2e-utils.dog-browser");
   }
 
-  static override get defaultOptions(): ApplicationOptions {
+  static override get defaultOptions() {
     return foundry.utils.mergeObject(super.defaultOptions, {
       id: "dog-browser",
       template: `modules/${moduleId}/templates/dogs.hbs`,
       width: 720,
       height: 720,
-    }) as ApplicationOptions;
+    });
   }
 
   override getData() {
@@ -46,7 +46,7 @@ export default class DogBrowser extends Application {
     const response = await fetch("https://dog.ceo/api/breeds/image/random");
     if (response.status != 200) {
       ui.notifications?.error(
-        `Unexpected response fetching new dog image: ${response.status}: ${response.statusText}`
+        `Unexpected response fetching new dog image: ${response.status}: ${response.statusText}`,
       );
       return;
     }

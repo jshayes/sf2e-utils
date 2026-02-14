@@ -1,6 +1,6 @@
-import { ModuleData } from "@league-of-foundry-developers/foundry-vtt-types/src/foundry/common/packages.mjs";
+import { Module } from "foundry-pf2e/foundry/client/packages/_module.mjs";
 import DogBrowser from "./apps/dogBrowser";
 
-export interface MyModule extends Game.ModuleData<ModuleData> {
+export interface MyModule extends Module {
   dogBrowser: DogBrowser;
 }

@@ -1,17 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/foundryvtt-manifest.json",
-  "id": "foundry-module-ts",
-  "title": "Typescript Template Module",
-  "description": "A template module using Typescript. You should change name, title, and description in module.json.",
+  "id": "sf2e-utils",
+  "title": "Starfinder 2e Utils",
+  "description": "A collection of utils and modifications for my sf2e jawn",
   "version": "1.0.0",
   "packs": [],
   "system": [],
   "dependencies": [],
   "scripts": [],
   "compatibility": {
-    "minimum": "9",
-    "verified": "10",
-    "maximum": "10"
+    "minimum": "13",
+    "verified": "13",
+    "maximum": "13"
   },
   "languages": [
     {

@@ -1,16 +1,11 @@
 {
   "compilerOptions": {
-    "types": [
-      "@league-of-foundry-developers/foundry-vtt-types",
-    ],
+    "types": ["foundry-pf2e", "jquery", "tooltipster"],
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "moduleResolution": "Node",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "bundler",
     "strict": true,
     "sourceMap": true,
     "resolveJsonModule": true,
@@ -24,7 +19,5 @@
     "noImplicitAny": true,
     "skipLibCheck": true
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }
