@@ -1,5 +1,5 @@
 const MACRO_RUNNER_PATTERN =
-  /@RunMacro\[(?:"([^"]*)")\s*(.*?)\](?:{([^}]+)})?/gi;
+  /@RunMacro\[(?:"([^"]*)"|(\S+))\s*(.*?)\](?:{([^}]+)})?/gi;
 const CLICK_SELECTOR = "a.inline-macro-execution";
 
 let clickHandlerRegistered = false;
@@ -19,17 +19,27 @@ function parseArgs(argsString: string): Record<string, string> {
 }
 
 function buildMacroExecutionButton(
-  macroName: string,
+  macro: foundry.documents.Macro,
   argsString: string,
   title: string,
-  flavor?: string,
+  flavour?: string,
 ): HTMLElement {
   const link = document.createElement("a");
   link.classList.add("inline-macro-execution", "inline-check");
-  link.dataset.macroName = macroName;
+  link.dataset.macroUuid = macro.uuid ?? undefined;
   link.dataset.args = argsString;
-  link.innerHTML = `<i class="fas fa-dice-d20"></i> ${flavor ?? title}`;
+  link.innerHTML = `<i class="fas fa-dice-d20"></i> ${flavour ?? title}`;
   return link;
+}
+
+async function getMacroFromUuid(
+  id: string,
+): Promise<foundry.documents.Macro | null> {
+  const document = await fromUuid(id);
+  if (document instanceof foundry.documents.Macro) {
+    return document;
+  }
+  return null;
 }
 
 async function runMacroEnricher(
@@ -37,15 +47,20 @@ async function runMacroEnricher(
 ): Promise<HTMLElement | null> {
   try {
     const macroName = String(match[1] ?? "").trim();
-    const argsString = String(match[2] ?? "").trim();
-    const flavor = match[3];
+    const macroId = String(match[2] ?? "").trim();
+    const argsString = String(match[3] ?? "").trim();
+    const flavour = match[4];
 
-    if (!macroName) return null;
+    if (!macroName && !macroId) return null;
 
-    const macro = game.macros.getName(macroName);
-    const title = `${macro?.name ?? macroName}(${argsString})`;
+    const macro = macroId
+      ? await getMacroFromUuid(macroId)
+      : game.macros.getName(macroName);
+    if (!macro) return null;
 
-    return buildMacroExecutionButton(macroName, argsString, title, flavor);
+    const title = `${macro.name}(${argsString})`;
+
+    return buildMacroExecutionButton(macro, argsString, title, flavour);
   } catch (error) {
     console.error(error);
     return null;
@@ -60,12 +75,12 @@ async function onClick(event: MouseEvent): Promise<void> {
   event.preventDefault();
 
   try {
-    const macroName = String(link.dataset.macroName ?? "").trim();
     const argsString = String(link.dataset.args ?? "");
     const args = parseArgs(argsString);
-    const macro = game.macros.getName(macroName);
+    const macroId = String(link.dataset.macroUuid ?? "").trim();
+    const macro = await getMacroFromUuid(macroId);
     if (!macro) {
-      ui.notifications.warn(`Macro not found: ${macroName}`);
+      ui.notifications.warn(`Macro not found: ${macroId}`);
       return;
     }
 

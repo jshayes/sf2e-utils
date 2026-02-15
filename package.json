@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run pack:macros",
     "watch": "vite build --watch",
     "typecheck": "tsc --noEmit",
     "scripts:build": "tsc -p tsconfig.scripts.json",
