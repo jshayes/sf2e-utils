@@ -1,6 +1,12 @@
 import { Module } from "foundry-pf2e/foundry/client/packages/_module.mjs";
-import DogBrowser from "./apps/dogBrowser";
+import * as helpers from "./helpers";
+import * as macros from "./macros";
+
+export interface Sf2eUtilsApi {
+  helpers: typeof helpers;
+  macros: typeof macros;
+}
 
 export interface MyModule extends Module {
-  dogBrowser: DogBrowser;
+  api: Sf2eUtilsApi;
 }

@@ -4,7 +4,14 @@
   "title": "Starfinder 2e Utils",
   "description": "A collection of utils and modifications for my sf2e jawn",
   "version": "1.0.0",
-  "packs": [],
+  "packs": [
+    {
+      "name": "macros",
+      "label": "SF2E Utils Macros",
+      "type": "Macro",
+      "path": "packs/macros"
+    }
+  ],
   "system": [],
   "dependencies": [],
   "scripts": [],
@@ -20,6 +27,6 @@
       "path": "languages/en.json"
     }
   ],
-  "styles": ["style.css"],
+  "styles": [],
   "esmodules": ["scripts/module.js"]
 }

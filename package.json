@@ -8,11 +8,16 @@
     "dev": "vite",
     "build": "vite build",
     "watch": "vite build --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "scripts:build": "tsc -p tsconfig.scripts.json",
+    "pack:macros": "tsx scripts/pack-macros.mts",
+    "unpack:macros": "tsx scripts/unpack-macros.mts"
   },
   "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "^3.0.3",
     "foundry-pf2e": "github:7H3LaughingMan/foundry-pf2e#v13",
     "sass": "^1.54.8",
+    "tsx": "^4.20.5",
     "typescript": "5.9.3",
     "vite": "^7.1.4"
   }

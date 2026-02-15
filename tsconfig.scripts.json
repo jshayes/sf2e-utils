@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": false,
+    "rootDir": "./scripts",
+    "outDir": "./.tmp/scripts",
+    "sourceMap": false
+  },
+  "include": ["scripts/**/*.mts", "scripts/**/*.d.ts"]
+}
