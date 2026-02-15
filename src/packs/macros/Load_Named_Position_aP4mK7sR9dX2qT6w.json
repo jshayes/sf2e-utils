@@ -1,0 +1,28 @@
+{
+  "name": "Load Named Position",
+  "type": "script",
+  "command": "await game.sf2eUtils.macros.loadNamedPosition(scope)",
+  "img": "icons/svg/direction.svg",
+  "author": "TLAWqblZZCmBRUYz",
+  "scope": "global",
+  "folder": null,
+  "ownership": {
+    "default": 0,
+    "TLAWqblZZCmBRUYz": 3
+  },
+  "flags": {},
+  "_stats": {
+    "compendiumSource": null,
+    "duplicateSource": null,
+    "exportSource": null,
+    "coreVersion": "13.351",
+    "systemId": "sf2e",
+    "systemVersion": "0.0.4",
+    "createdTime": 1771115001000,
+    "modifiedTime": 1771115001000,
+    "lastModifiedBy": "TLAWqblZZCmBRUYz"
+  },
+  "_id": "aP4mK7sR9dX2qT6w",
+  "sort": 0,
+  "_key": "!macros!aP4mK7sR9dX2qT6w"
+}
