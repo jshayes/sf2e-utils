@@ -5,6 +5,7 @@ import { moduleId } from "./constants";
 import { registerEnrichers } from "./enrichers";
 import * as helpers from "./helpers";
 import { registerHideDeadHook } from "./hideDead";
+import { registerJournalSkillCheckEditorHooks } from "./journalSkillCheckEditor";
 import * as macros from "./macros";
 import { MyModule } from "./types";
 
@@ -27,6 +28,7 @@ Hooks.once("init", () => {
   console.log(`Initializing ${moduleId}`);
   registerEnrichers();
   registerHideDeadHook();
+  registerJournalSkillCheckEditorHooks();
   initializeModule();
 });
 
