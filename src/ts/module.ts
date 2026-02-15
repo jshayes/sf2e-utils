@@ -5,6 +5,7 @@ import { moduleId } from "./constants";
 import { MyModule } from "./types";
 import * as helpers from "./helpers";
 import * as macros from "./macros";
+import { registerEnrichers } from "./enrichers";
 
 type GameWithSf2eUtils = typeof game & {
   sf2eUtils?: MyModule["api"];
@@ -23,6 +24,7 @@ function initializeModule(): void {
 
 Hooks.once("init", () => {
   console.log(`Initializing ${moduleId}`);
+  registerEnrichers();
   initializeModule();
 });
 
