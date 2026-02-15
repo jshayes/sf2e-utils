@@ -2,10 +2,11 @@
 // code and not include them in the build output.
 import "../styles/style.scss";
 import { moduleId } from "./constants";
-import { MyModule } from "./types";
-import * as helpers from "./helpers";
-import * as macros from "./macros";
 import { registerEnrichers } from "./enrichers";
+import * as helpers from "./helpers";
+import { registerHideDeadHook } from "./hideDead";
+import * as macros from "./macros";
+import { MyModule } from "./types";
 
 type GameWithSf2eUtils = typeof game & {
   sf2eUtils?: MyModule["api"];
@@ -25,6 +26,7 @@ function initializeModule(): void {
 Hooks.once("init", () => {
   console.log(`Initializing ${moduleId}`);
   registerEnrichers();
+  registerHideDeadHook();
   initializeModule();
 });
 
