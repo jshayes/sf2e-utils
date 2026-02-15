@@ -18,7 +18,7 @@ async function writeManifest(useDevEntry: boolean): Promise<void> {
   manifest.esmodules = useDevEntry
     ? [`${devServerOrigin}${basePath}scripts/module.js`]
     : ["scripts/module.js"];
-  manifest.styles = ["style.css"];
+  manifest.styles = [];
 
   await writeFile("dist/module.json", `${JSON.stringify(manifest, null, 2)}\n`);
 }
@@ -57,12 +57,12 @@ export default defineConfig({
     outDir: "../dist",
     emptyOutDir: true,
     sourcemap: true,
-      lib: {
-        entry: "ts/module.ts",
-        formats: ["es"],
-        fileName: () => "scripts/module.js",
-        cssFileName: "style",
-      },
+    lib: {
+      entry: "ts/module.ts",
+      formats: ["es"],
+      fileName: () => "scripts/module.js",
+      cssFileName: "style",
     },
+  },
   plugins: [copyFoundryFiles()],
 });
