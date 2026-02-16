@@ -1,7 +1,8 @@
 import { getSkillOptions, type SkillOption } from "../helpers";
 import { createSkillCheckMessage } from "../macros";
+import { registerEnricher, unregisterEnricher } from "./utils";
 
-const SKILL_CHECK_PROMPT_PATTERN = /@(PCheck)\[([^\]]+)?\](?:{([^}]+)})?/g;
+const pattern = /@(PCheck)\[([^\]]+)?\](?:{([^}]+)})?/g;
 const CLICK_SELECTOR = "a.pcheck";
 
 let clickHandlerRegistered = false;
@@ -70,9 +71,7 @@ function buildMacroExecutionButton(
   return link;
 }
 
-async function skillCheckPromptEnricher(
-  match: RegExpMatchArray,
-): Promise<HTMLElement | null> {
+async function enricher(match: RegExpMatchArray): Promise<HTMLElement | null> {
   const argsInput = match[2];
   const flavour = match[3];
   const skills = getSkillOptions();
@@ -106,16 +105,23 @@ async function onClick(event: MouseEvent): Promise<void> {
   }
 }
 
-export function registerSkillCheckPromptEnricher(): void {
-  CONFIG.TextEditor.enrichers.push({
-    pattern: SKILL_CHECK_PROMPT_PATTERN,
-    enricher: skillCheckPromptEnricher,
+export function registerSkillCheckPromptEnricher() {
+  registerEnricher({
+    pattern,
+    enricher,
   });
 
   if (!clickHandlerRegistered) {
-    document.body.addEventListener("click", (event) => {
-      void onClick(event as MouseEvent);
-    });
+    document.body.addEventListener("click", onClick);
     clickHandlerRegistered = true;
+  }
+}
+
+export function unregisterSkillCheckPromptEnricher() {
+  unregisterEnricher(pattern);
+
+  if (clickHandlerRegistered) {
+    document.body.removeEventListener("click", onClick);
+    clickHandlerRegistered = false;
   }
 }

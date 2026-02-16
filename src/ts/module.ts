@@ -2,7 +2,7 @@
 // code and not include them in the build output.
 import "../styles/style.scss";
 import { moduleId } from "./constants";
-import { registerEnrichers } from "./enrichers";
+import { registerEnrichers, unregisterEnrichers } from "./enrichers";
 import * as helpers from "./helpers";
 import { registerHideDeadHook } from "./hideDead";
 import { registerJournalSkillCheckEditorHooks } from "./journalSkillCheckEditor";
@@ -22,11 +22,12 @@ function initializeModule(): void {
   module = currentModule as MyModule;
   module.api = { helpers, macros };
   (game as GameWithSf2eUtils).sf2eUtils = module.api;
+
+  registerEnrichers();
 }
 
 Hooks.once("init", () => {
   console.log(`Initializing ${moduleId}`);
-  registerEnrichers();
   registerHideDeadHook();
   registerJournalSkillCheckEditorHooks();
   initializeModule();
@@ -36,6 +37,7 @@ if (import.meta.hot) {
   import.meta.hot.accept();
   import.meta.hot.dispose(() => {
     delete (game as GameWithSf2eUtils).sf2eUtils;
+    unregisterEnrichers();
   });
 
   // During HMR, init already ran. Recreate module-scoped instances.

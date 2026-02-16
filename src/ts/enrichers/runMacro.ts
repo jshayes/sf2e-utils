@@ -1,5 +1,6 @@
-const MACRO_RUNNER_PATTERN =
-  /@RunMacro\[(?:"([^"]*)"|(\S+))\s*(.*?)\](?:{([^}]+)})?/gi;
+import { registerEnricher, unregisterEnricher } from "./utils";
+
+const pattern = /@RunMacro\[(?:"([^"]*)"|(\S+))\s*(.*?)\](?:{([^}]+)})?/gi;
 const CLICK_SELECTOR = "a.inline-macro-execution";
 
 let clickHandlerRegistered = false;
@@ -42,9 +43,7 @@ async function getMacroFromUuid(
   return null;
 }
 
-async function runMacroEnricher(
-  match: RegExpMatchArray,
-): Promise<HTMLElement | null> {
+async function enricher(match: RegExpMatchArray): Promise<HTMLElement | null> {
   try {
     const macroName = String(match[1] ?? "").trim();
     const macroId = String(match[2] ?? "").trim();
@@ -92,15 +91,23 @@ async function onClick(event: MouseEvent): Promise<void> {
 }
 
 export function registerRunMacroEnricher(): void {
-  CONFIG.TextEditor.enrichers.push({
-    pattern: MACRO_RUNNER_PATTERN,
-    enricher: runMacroEnricher,
+  registerEnricher({
+    pattern,
+    enricher,
   });
 
   if (!clickHandlerRegistered) {
-    document.body.addEventListener("click", (event) => {
-      void onClick(event as MouseEvent);
-    });
+    document.body.addEventListener("click", onClick);
     clickHandlerRegistered = true;
+  }
+}
+
+export function unregisterRunMacroEnricher() {
+  console.log("unregisterRunMacroEnricher", pattern);
+  unregisterEnricher(pattern);
+
+  if (clickHandlerRegistered) {
+    document.body.removeEventListener("click", onClick);
+    clickHandlerRegistered = false;
   }
 }

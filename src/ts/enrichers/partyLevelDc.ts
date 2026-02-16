@@ -1,6 +1,7 @@
 import { getPartyDC } from "../helpers";
+import { registerEnricher, unregisterEnricher } from "./utils";
 
-const PARTY_LEVEL_DC_PATTERN = /@PDC\[((?:\+|-)[\d]+)?\]/g;
+const pattern = /@PDC\[((?:\+|-)[\d]+)?\]/g;
 
 function getAdjustmentFromArgs(args?: string): number {
   if (!args) return 0;
@@ -8,18 +9,22 @@ function getAdjustmentFromArgs(args?: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-async function partyLevelDcEnricher(
-  match: RegExpMatchArray,
-): Promise<HTMLElement> {
+async function enricher(match: RegExpMatchArray): Promise<HTMLElement> {
   const value = getPartyDC() + getAdjustmentFromArgs(match[1]);
   const element = document.createElement("span");
   element.textContent = String(value);
   return element;
 }
 
+const partyLevelDcEnricher = {
+  pattern,
+  enricher,
+};
+
 export function registerPartyLevelDcEnricher(): void {
-  CONFIG.TextEditor.enrichers.push({
-    pattern: PARTY_LEVEL_DC_PATTERN,
-    enricher: partyLevelDcEnricher,
-  });
+  registerEnricher(partyLevelDcEnricher);
+}
+
+export function unregisterPartyLevelDcEnricher(): void {
+  unregisterEnricher(pattern);
 }
