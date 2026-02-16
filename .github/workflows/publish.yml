@@ -1,48 +1,70 @@
 name: Publish release
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
 
       - name: Install dependencies
-        run: yarn
+        run: npm ci
 
-      - name: Extract tag version number
-        id: get_version
-        uses: battila7/get-version-action@v2
+      - name: Set release metadata
+        run: |
+          VERSION="$(node -p "require('./src/module.json').version")"
+          TAG_NAME="v$VERSION"
+          RELEASE_NAME="$TAG_NAME"
+          RELEASE_DRAFT="false"
+          RELEASE_PRERELEASE="false"
+          {
+            echo "RELEASE_BODY<<EOF"
+            echo "Automated release for version $VERSION."
+            echo "EOF"
+          } >> "$GITHUB_ENV"
 
-      - name: Run Vite build
+          REPO_URL="https://github.com/${{ github.repository }}"
+          echo "MODULE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=$RELEASE_NAME" >> "$GITHUB_ENV"
+          echo "RELEASE_DRAFT=$RELEASE_DRAFT" >> "$GITHUB_ENV"
+          echo "RELEASE_PRERELEASE=$RELEASE_PRERELEASE" >> "$GITHUB_ENV"
+          echo "MODULE_URL=$REPO_URL" >> "$GITHUB_ENV"
+          echo "MODULE_MANIFEST_URL=$REPO_URL/releases/latest/download/module.json" >> "$GITHUB_ENV"
+          echo "MODULE_DOWNLOAD_URL=$REPO_URL/releases/download/$TAG_NAME/module.zip" >> "$GITHUB_ENV"
+
+      - name: Build module
+        run: npm run build
         env:
-          MODULE_VERSION: ${{steps.get_version.outputs.version-without-v}}
-          GH_PROJECT: ${{github.repository}}
-          GH_TAG: ${{github.event.release.tag_name}}
-        run: yarn build
+          MODULE_VERSION: ${{ env.MODULE_VERSION }}
+          MODULE_URL: ${{ env.MODULE_URL }}
+          MODULE_MANIFEST_URL: ${{ env.MODULE_MANIFEST_URL }}
+          MODULE_DOWNLOAD_URL: ${{ env.MODULE_DOWNLOAD_URL }}
 
       - name: Create zip archive
         working-directory: dist
-        run: zip -r ./module.zip module.json scripts/ templates/ languages/
+        run: zip -r ./module.zip module.json scripts/ style.css templates/ languages/ packs/
 
       - name: Update release with files
         id: create_version_release
         uses: ncipollo/release-action@v1
         with:
-          allowUpdates: true # Set this to false if you want to prevent updating existing releases
-          name: ${{ github.event.release.name }}
-          draft: ${{ github.event.release.unpublished }}
-          prerelease: ${{ github.event.release.prerelease }}
+          allowUpdates: false
+          name: ${{ env.RELEASE_NAME }}
+          draft: ${{ env.RELEASE_DRAFT }}
+          prerelease: ${{ env.RELEASE_PRERELEASE }}
           token: ${{ secrets.GITHUB_TOKEN }}
           artifacts: "./dist/module.json, ./dist/module.zip"
-          tag: ${{ github.event.release.tag_name }}
-          body: ${{ github.event.release.body }}
+          tag: ${{ env.TAG_NAME }}
+          body: ${{ env.RELEASE_BODY }}

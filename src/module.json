@@ -3,7 +3,10 @@
   "id": "sf2e-utils",
   "title": "Starfinder 2e Utils",
   "description": "A collection of utils and modifications for my sf2e jawn",
-  "version": "1.0.0",
+  "url": "https://github.com/jshayes/sf2e-utils",
+  "manifest": "https://github.com/jshayes/sf2e-utils/releases/latest/download/module.json",
+  "download": "https://github.com/jshayes/sf2e-utils/releases/latest/download/module.zip",
+  "version": "0.0.1",
   "packs": [
     {
       "name": "macros",
