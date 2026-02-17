@@ -7,7 +7,7 @@ import * as helpers from "./helpers";
 import { registerHideDeadHook } from "./hideDead";
 import { registerJournalSkillCheckEditorHooks } from "./journalSkillCheckEditor";
 import * as macros from "./macros";
-import { registerModules } from "./modules";
+import { registerModules, unregisterModules } from "./modules";
 import { MyModule } from "./types";
 
 type GameWithSf2eUtils = typeof game & {
@@ -25,13 +25,13 @@ function initializeModule(): void {
   (game as GameWithSf2eUtils).sf2eUtils = module.api;
 
   registerEnrichers();
+  registerModules();
 }
 
 Hooks.once("init", () => {
   console.log(`Initializing ${moduleId}`);
   registerHideDeadHook();
   registerJournalSkillCheckEditorHooks();
-  registerModules();
   initializeModule();
 });
 
@@ -40,6 +40,7 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     delete (game as GameWithSf2eUtils).sf2eUtils;
     unregisterEnrichers();
+    unregisterModules();
   });
 
   // During HMR, init already ran. Recreate module-scoped instances.

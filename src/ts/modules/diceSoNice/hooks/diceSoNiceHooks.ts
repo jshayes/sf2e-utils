@@ -56,25 +56,36 @@ function injectPresetButton(root: HTMLElement): void {
   });
 }
 
+let diceSoNiceRollStartHook: number;
+let renderDiceConfigHook: number;
+
 export function registerDiceSoNiceHooks(): void {
-  Hooks.on("diceSoNiceRollStart", async (_, options) => {
-    if (options.user.id === game.user.id) {
-      const presets = Object.values(
-        game.user.getFlag(moduleId, FLAG_KEY) ?? {},
-      ).filter((x) => x.enabled);
+  diceSoNiceRollStartHook = Hooks.on(
+    "diceSoNiceRollStart",
+    async (_, options) => {
+      if (options.user.id === game.user.id) {
+        const presets = Object.values(
+          game.user.getFlag(moduleId, FLAG_KEY) ?? {},
+        ).filter((x) => x.enabled);
 
-      if (presets.length) {
-        const preset = randomElement(presets);
-        await applyPreset(preset);
+        if (presets.length) {
+          const preset = randomElement(presets);
+          await applyPreset(preset);
+        }
       }
-    }
 
-    await loadDiceForUser(options.user);
-  });
+      await loadDiceForUser(options.user);
+    },
+  );
 
-  Hooks.on("renderDiceConfig", (_app, element) => {
+  renderDiceConfigHook = Hooks.on("renderDiceConfig", (_app, element) => {
     const root = asHTMLElement(element);
     if (!root) return;
     injectPresetButton(root);
   });
+}
+
+export function unregisterDiceSoNiceHooks() {
+  Hooks.off("diceSoNiceRollStart", diceSoNiceRollStartHook);
+  Hooks.off("renderDiceConfig", renderDiceConfigHook);
 }

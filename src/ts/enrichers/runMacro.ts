@@ -103,7 +103,6 @@ export function registerRunMacroEnricher(): void {
 }
 
 export function unregisterRunMacroEnricher() {
-  console.log("unregisterRunMacroEnricher", pattern);
   unregisterEnricher(pattern);
 
   if (clickHandlerRegistered) {
