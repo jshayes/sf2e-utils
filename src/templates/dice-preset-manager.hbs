@@ -1,0 +1,51 @@
+<div class="dice-preset-manager-app">
+  <div class="dice-preset-manager">
+    <div class="form-group">
+      <label>Preset Name</label>
+      <div class="form-fields dice-preset-row">
+        <input
+          class="dice-preset-name"
+          type="text"
+          data-preset-name
+          placeholder="e.g. Critical Red"
+          value="{{newPresetName}}"
+        />
+        <div class="dice-preset-controls">
+          <button type="button" data-action="add-preset" {{#unless canAddPreset}}disabled{{/unless}}>
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <hr />
+
+    <div class="dice-preset-list">
+      {{#if presets.length}}
+        {{#each presets}}
+          <div class="dice-preset-row">
+            <div class="dice-preset-enabled">
+              <input
+                type="checkbox"
+                data-action="toggle-preset"
+                data-name="{{this.name}}"
+                {{#if this.enabled}}checked{{/if}}
+              />
+            </div>
+            <div class="dice-preset-name" title="{{this.name}}">{{this.name}}</div>
+            <div class="dice-preset-controls">
+              <button type="button" data-action="apply-preset" data-name="{{this.name}}">
+                <i class="fa-solid fa-download"></i>
+              </button>
+              <button type="button" data-action="delete-preset" data-name="{{this.name}}">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        {{/each}}
+      {{else}}
+        <p>No presets saved yet.</p>
+      {{/if}}
+    </div>
+  </div>
+</div>

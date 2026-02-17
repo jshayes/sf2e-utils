@@ -7,6 +7,7 @@ import * as helpers from "./helpers";
 import { registerHideDeadHook } from "./hideDead";
 import { registerJournalSkillCheckEditorHooks } from "./journalSkillCheckEditor";
 import * as macros from "./macros";
+import { registerModules } from "./modules";
 import { MyModule } from "./types";
 
 type GameWithSf2eUtils = typeof game & {
@@ -30,6 +31,7 @@ Hooks.once("init", () => {
   console.log(`Initializing ${moduleId}`);
   registerHideDeadHook();
   registerJournalSkillCheckEditorHooks();
+  registerModules();
   initializeModule();
 });
 
