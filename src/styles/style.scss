@@ -1,3 +1,5 @@
+@use "./numberTracker";
+
 span.inline-check {
   background: var(--content-link-background);
   border: 1px solid var(--content-link-border-color);

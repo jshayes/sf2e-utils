@@ -1,0 +1,65 @@
+<div class="number-tracker-app">
+  <div data-tracker-list>
+    {{#each trackers}}
+      <div class="tracker-entry" data-tracker-entry data-index="{{@index}}">
+        <div class="tracker-row">
+          <label class="tracker-label">Name</label>
+          <div class="tracker-fields">
+            <input
+              type="text"
+              name="trackerName"
+              placeholder="e.g. Victory Points"
+              value="{{this.name}}"
+              data-tracker-input
+            />
+            <button
+              type="button"
+              class="tracker-icon-button"
+              data-action="remove-tracker"
+              data-index="{{@index}}"
+              aria-label="Remove tracker"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        <div class="tracker-row">
+          <label class="tracker-label">Value</label>
+          <div class="tracker-fields">
+            <button
+              type="button"
+              class="tracker-icon-button"
+              data-action="adjust-value"
+              data-index="{{@index}}"
+              data-delta="-1"
+              aria-label="Decrease value"
+            >
+              <i class="fa-solid fa-minus"></i>
+            </button>
+            <input
+              type="number"
+              name="trackerValue"
+              step="1"
+              value="{{this.value}}"
+              data-tracker-input
+            />
+            <button
+              type="button"
+              class="tracker-icon-button"
+              data-action="adjust-value"
+              data-index="{{@index}}"
+              data-delta="1"
+              aria-label="Increase value"
+            >
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  </div>
+
+  <div class="form-group">
+    <button type="button" data-action="add-tracker">Add Tracker</button>
+  </div>
+</div>

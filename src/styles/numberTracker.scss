@@ -1,0 +1,33 @@
+.number-tracker .tracker-entry {
+  margin-bottom: 0.75rem;
+}
+
+.number-tracker .tracker-row {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.number-tracker .tracker-label {
+  flex: 0 0 3rem;
+  margin: 0;
+}
+
+.number-tracker .tracker-fields {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 0.25rem;
+}
+
+.number-tracker .tracker-fields input {
+  flex: 1;
+}
+
+.number-tracker .tracker-icon-button {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 2rem;
+}
