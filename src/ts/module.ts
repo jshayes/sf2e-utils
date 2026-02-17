@@ -4,7 +4,6 @@ import "../styles/style.scss";
 import { moduleId } from "./constants";
 import { registerEnrichers, unregisterEnrichers } from "./enrichers";
 import * as helpers from "./helpers";
-import { registerHideDeadHook } from "./hideDead";
 import { registerJournalSkillCheckEditorHooks } from "./journalSkillCheckEditor";
 import * as macros from "./macros";
 import { moduleMacros, registerModules, unregisterModules } from "./modules";
@@ -30,7 +29,6 @@ function initializeModule(): void {
 
 Hooks.once("init", () => {
   console.log(`Initializing ${moduleId}`);
-  registerHideDeadHook();
   registerJournalSkillCheckEditorHooks();
   initializeModule();
 });

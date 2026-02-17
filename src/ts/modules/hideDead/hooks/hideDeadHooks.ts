@@ -1,4 +1,4 @@
-import { moduleId } from "./constants";
+import { moduleId } from "../../../constants";
 
 const FLAG_SCOPE = "deadStyle";
 const DEAD_ALPHA = 0.25;
@@ -50,19 +50,27 @@ async function clearDeadStyle(tokenDoc: TokenDocument): Promise<void> {
   await tokenDoc.unsetFlag(moduleId, FLAG_SCOPE);
 }
 
-export function registerHideDeadHook(): void {
-  Hooks.on("updateCombatant", async (combatant, changed) => {
-    if (!game.user.isGM) return;
-    if (changed.defeated === undefined) return;
+let updateCombatantHook: number;
+export function registerHideDeadHooks(): void {
+  updateCombatantHook = Hooks.on(
+    "updateCombatant",
+    async (combatant, changed) => {
+      if (!game.user.isGM) return;
+      if (changed.defeated === undefined) return;
 
-    const tokenId = String(combatant.tokenId ?? "");
-    const tokenDoc = combatant.token ?? canvas.scene?.tokens.get(tokenId);
-    if (!tokenDoc) return;
+      const tokenId = String(combatant.tokenId ?? "");
+      const tokenDoc = combatant.token ?? canvas.scene?.tokens.get(tokenId);
+      if (!tokenDoc) return;
 
-    if (combatant.defeated) {
-      await applyDeadStyle(tokenDoc);
-    } else {
-      await clearDeadStyle(tokenDoc);
-    }
-  });
+      if (combatant.defeated) {
+        await applyDeadStyle(tokenDoc);
+      } else {
+        await clearDeadStyle(tokenDoc);
+      }
+    },
+  );
+}
+
+export function unregisterHideDeadHooks(): void {
+  Hooks.off("updateCombatant", updateCombatantHook);
 }
