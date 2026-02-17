@@ -26,10 +26,10 @@ function buildMacroExecutionButton(
   flavour?: string,
 ): HTMLElement {
   const link = document.createElement("a");
-  link.classList.add("inline-macro-execution", "inline-check");
+  link.classList.add("inline-macro-execution", "sf2e-enricher");
   link.dataset.macroUuid = macro.uuid ?? undefined;
   link.dataset.args = argsString;
-  link.innerHTML = `<i class="fas fa-dice-d20"></i> ${flavour ?? title}`;
+  link.innerHTML = `<i class="fas fa-code"></i>${flavour ?? title}`;
   return link;
 }
 

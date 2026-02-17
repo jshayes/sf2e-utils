@@ -52,6 +52,9 @@ jobs:
           MODULE_MANIFEST_URL: ${{ env.MODULE_MANIFEST_URL }}
           MODULE_DOWNLOAD_URL: ${{ env.MODULE_DOWNLOAD_URL }}
 
+      - name: Pack macros
+        run: npm run pack:macros
+
       - name: Create zip archive
         working-directory: dist
         run: zip -r ./module.zip module.json scripts/ style.css templates/ languages/ packs/

@@ -51,7 +51,7 @@ function copyFoundryFiles(): Plugin {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   root: "src",
   base: basePath,
   server: {
@@ -67,7 +67,9 @@ export default defineConfig({
   },
   build: {
     outDir: "../dist",
-    emptyOutDir: true,
+    // Default: preserve dist/packs between builds. Use `npm run build:clean`
+    // to force a clean outDir build.
+    emptyOutDir: mode === "clean",
     sourcemap: true,
     lib: {
       entry: "ts/module.ts",
@@ -77,4 +79,4 @@ export default defineConfig({
     },
   },
   plugins: [copyFoundryFiles()],
-});
+}));

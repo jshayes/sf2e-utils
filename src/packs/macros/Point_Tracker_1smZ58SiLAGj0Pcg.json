@@ -1,7 +1,7 @@
 {
   "name": "Point Tracker",
   "type": "script",
-  "command": "await game.sf2eUtils.macros.numberTracker()",
+  "command": "await game.sf2eUtils.macros.numberTracker(scope)",
   "img": "icons/svg/dice-target.svg",
   "author": "TLAWqblZZCmBRUYz",
   "scope": "global",

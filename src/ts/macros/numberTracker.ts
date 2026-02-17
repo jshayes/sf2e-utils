@@ -1,4 +1,5 @@
 import { moduleId } from "../constants";
+import { validate } from "./validation";
 
 const FLAG_KEY = "number-tracker-state";
 
@@ -9,6 +10,10 @@ type TrackerEntry = {
 
 type TrackerState = {
   trackers: TrackerEntry[];
+};
+
+type TrackerInput = {
+  name?: string;
 };
 
 function parseInteger(value: unknown, fallback = 0): number {
@@ -25,8 +30,24 @@ function coerceTrackerEntry(value: unknown): TrackerEntry {
   };
 }
 
-export async function numberTracker(): Promise<void> {
-  const savedState = game.user.getFlag(moduleId, FLAG_KEY) as
+function validateInput(input: TrackerInput): asserts input is TrackerInput {
+  validate(
+    [
+      (scope) => ({
+        condition: Boolean(scope.name && typeof scope.name !== "string"),
+        message: `The name property must be a string, received: ${typeof scope.name}`,
+      }),
+    ],
+    input,
+  );
+}
+
+export async function numberTracker(input: TrackerInput = {}): Promise<void> {
+  validateInput(input);
+
+  const flagKey = `${FLAG_KEY}.${input.name ?? "default"}`;
+
+  const savedState = game.user.getFlag(moduleId, flagKey) as
     | TrackerState
     | undefined;
   const initialTrackers =
@@ -34,24 +55,19 @@ export async function numberTracker(): Promise<void> {
       ? savedState.trackers.map(coerceTrackerEntry)
       : [{ name: "", value: 0 }];
 
-  if (!foundry.applications.api.DialogV2) {
-    throw new Error("DialogV2 API is unavailable.");
-  }
-
   await foundry.applications.api.DialogV2.wait({
-    window: { title: "Number Tracker" },
+    window: { title: `Number Tracker${input.name ? `: ${input.name}` : ""}` },
+    form: { closeOnSubmit: false },
     content: `
       <div data-tracker-list></div>
-      <div class="form-group">
-        <button type="button" data-add-tracker>Add Tracker</button>
-      </div>
     `,
-    render: (_event: Event, dialog: { element?: HTMLElement | null }) => {
+    render: (event: Event, dialog: { element?: HTMLElement | null }) => {
+      console.log({ event });
       const root = dialog.element;
       if (!root) return;
 
       const trackerList = root.querySelector("[data-tracker-list]");
-      const addButton = root.querySelector("button[data-add-tracker]");
+      const addButton = root.querySelector('button[data-action="addTracker"]');
       if (!(trackerList instanceof HTMLElement)) return;
       if (!(addButton instanceof HTMLButtonElement)) return;
 
@@ -78,7 +94,7 @@ export async function numberTracker(): Promise<void> {
       };
 
       const saveState = async (): Promise<void> => {
-        await game.user.setFlag(moduleId, FLAG_KEY, getStateFromDom());
+        await game.user.setFlag(moduleId, flagKey, getStateFromDom());
       };
 
       const addTrackerEntry = (
@@ -92,15 +108,15 @@ export async function numberTracker(): Promise<void> {
             <label>Name</label>
             <div class="form-fields" style="gap: 0.25rem;">
               <input type="text" name="trackerName" placeholder="e.g. Victory Points" value="${foundry.utils.escapeHTML(tracker.name ?? "")}" />
-              <button type="button" data-remove-tracker aria-label="Remove tracker">X</button>
+              <button type="button" data-remove-tracker aria-label="Remove tracker"><i class="fa-solid fa-trash"></i></button>
             </div>
           </div>
           <div class="form-group">
             <label>Value</label>
             <div class="form-fields" style="gap: 0.25rem;">
-              <button type="button" data-adjust="-1" aria-label="Decrease value">-</button>
+              <button type="button" data-adjust="-1" aria-label="Decrease value"><i class="fa-solid fa-minus"></i></button>
               <input type="number" name="trackerValue" step="1" value="${parseInteger(tracker.value, 0)}" />
-              <button type="button" data-adjust="1" aria-label="Increase value">+</button>
+              <button type="button" data-adjust="1" aria-label="Increase value"><i class="fa-solid fa-plus"></i></button>
             </div>
           </div>
         `;
@@ -150,7 +166,9 @@ export async function numberTracker(): Promise<void> {
         valueInput.addEventListener("change", () => void saveState());
       };
 
-      addButton.addEventListener("click", () => {
+      addButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         addTrackerEntry();
         void saveState();
       });
@@ -161,8 +179,8 @@ export async function numberTracker(): Promise<void> {
     },
     buttons: [
       {
-        action: "close",
-        label: "Close",
+        action: "addTracker",
+        label: "Add Tracker",
         default: true,
       },
     ],

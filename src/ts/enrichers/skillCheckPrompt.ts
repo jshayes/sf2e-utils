@@ -65,7 +65,7 @@ function buildMacroExecutionButton(
   const icon = parseIcon(args.skill?.slug);
 
   const link = document.createElement("a");
-  link.classList.add("pcheck", "inline-check");
+  link.classList.add("pcheck", "sf2e-enricher");
   link.dataset.args = argsString;
   link.innerHTML = `<i class="fa-solid ${icon} icon"></i> ${flavour ?? title}`;
   return link;

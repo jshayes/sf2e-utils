@@ -21,6 +21,17 @@ span.sf2e-activate-scene {
   word-break: break-all;
 }
 
+a.sf2e-enricher {
+  background: var(--content-link-background);
+  border: 1px solid var(--content-link-border-color);
+  border-radius: 2px;
+  box-sizing: border-box;
+  color: var(--content-link-text-color);
+  padding: 0 var(--space-4);
+  white-space: nowrap;
+  word-break: break-all;
+}
+
 a.sf2e-activate-scene {
   background: var(--content-link-background);
   border-left: 1px solid var(--content-link-border-color);
@@ -31,6 +42,8 @@ a.sf2e-activate-scene {
   word-break: break-all;
 }
 
-/* a.sf2e-activate-scene:hover { */
-/*   text-shadow: none; */
-/* } */
+a.inline-macro-execution i {
+  font-size: 0.9em;
+  color: var(--color-text-dark-inactive);
+  margin-right: 0.25em;
+}
