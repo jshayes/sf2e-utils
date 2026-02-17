@@ -1,5 +1,5 @@
+import { validate } from "../../../helpers/validation";
 import { NumberTrackerApp } from "../applications/numberTrackerApp";
-import { validate } from "./validation";
 
 type TrackerInput = {
   name?: string;
@@ -17,7 +17,7 @@ function validateInput(input: TrackerInput): asserts input is TrackerInput {
   );
 }
 
-export async function numberTracker(input: TrackerInput = {}): Promise<void> {
+export async function open(input: TrackerInput = {}): Promise<void> {
   validateInput(input);
   await new NumberTrackerApp({ name: input.name }).render({ force: true });
 }

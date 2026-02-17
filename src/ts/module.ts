@@ -7,7 +7,7 @@ import * as helpers from "./helpers";
 import { registerHideDeadHook } from "./hideDead";
 import { registerJournalSkillCheckEditorHooks } from "./journalSkillCheckEditor";
 import * as macros from "./macros";
-import { registerModules, unregisterModules } from "./modules";
+import { moduleMacros, registerModules, unregisterModules } from "./modules";
 import { MyModule } from "./types";
 
 type GameWithSf2eUtils = typeof game & {
@@ -21,7 +21,7 @@ function initializeModule(): void {
   if (!currentModule) return;
 
   module = currentModule as MyModule;
-  module.api = { helpers, macros };
+  module.api = { helpers, macros: { ...macros, ...moduleMacros } };
   (game as GameWithSf2eUtils).sf2eUtils = module.api;
 
   registerEnrichers();

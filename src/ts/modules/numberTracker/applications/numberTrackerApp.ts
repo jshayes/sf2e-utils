@@ -1,4 +1,4 @@
-import { moduleId } from "../constants";
+import { moduleId } from "../../../constants";
 
 const FLAG_KEY = "number-tracker-state";
 
