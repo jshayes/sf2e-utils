@@ -43,16 +43,12 @@ const NumberTrackerAppBase =
   );
 
 export class NumberTrackerApp extends NumberTrackerAppBase {
-  static override DEFAULT_OPTIONS = foundry.utils.mergeObject(
-    super.DEFAULT_OPTIONS,
-    {
-      id: `${moduleId}-number-tracker`,
-      classes: [moduleId, "number-tracker"],
-      tag: "section",
-      position: { width: 300 },
-      window: { resizable: false },
-    },
-  );
+  static override DEFAULT_OPTIONS = {
+    classes: [moduleId, "number-tracker"],
+    tag: "section",
+    position: { width: 300 },
+    window: { resizable: false },
+  };
 
   static override PARTS: Record<
     string,
@@ -71,7 +67,10 @@ export class NumberTrackerApp extends NumberTrackerAppBase {
     const title = `Number Tracker${options.name ? `: ${options.name}` : ""}`;
     const name = options.name ?? "default";
 
-    super({ window: { title }, id: `${moduleId}-number-tracker-${name}` });
+    super({
+      id: `${moduleId}-number-tracker-${name}`,
+      window: { title },
+    });
 
     this.#flagKey = `${FLAG_KEY}.${name}`;
     const savedState = game.user.getFlag(moduleId, this.#flagKey) as
