@@ -4,7 +4,6 @@ import "../styles/style.scss";
 import { moduleId } from "./constants";
 import { registerEnrichers, unregisterEnrichers } from "./enrichers";
 import * as helpers from "./helpers";
-import { registerJournalSkillCheckEditorHooks } from "./journalSkillCheckEditor";
 import * as macros from "./macros";
 import { moduleMacros, registerModules, unregisterModules } from "./modules";
 import { MyModule } from "./types";
@@ -29,7 +28,6 @@ function initializeModule(): void {
 
 Hooks.once("init", () => {
   console.log(`Initializing ${moduleId}`);
-  registerJournalSkillCheckEditorHooks();
   initializeModule();
 });
 
