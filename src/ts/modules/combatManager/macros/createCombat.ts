@@ -148,6 +148,7 @@ export async function createCombat(name: string): Promise<void> {
     })),
   );
   await createdCombat.activate();
+  await createdCombat.rollNPC();
 
   const updatedCombat = combats[index];
   if (updatedCombat) {
@@ -156,6 +157,6 @@ export async function createCombat(name: string): Promise<void> {
   }
 
   ui.notifications.info(
-    `Created and activated combat "${combat.name}" with ${tokenDocuments.length} combatants.`,
+    `Created and activated combat "${combat.name}" with ${tokenDocuments.length} combatants, then rolled NPC initiative.`,
   );
 }
