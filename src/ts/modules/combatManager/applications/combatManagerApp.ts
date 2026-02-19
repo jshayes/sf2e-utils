@@ -94,16 +94,18 @@ export class CombatManagerApp extends CombatManagerAppBase {
   #combats: CombatEntry[];
   #selectedCombatIndex: number | null = null;
   #controlTokenHookId: number;
-  #canvasReadyHookId: number;
+  #sceneSwitchHookId: number;
+  #sceneId: string | null = null;
 
   constructor() {
     super({});
     this.#combats = this.#readCombatsFromScene();
+    this.#sceneId = game.scenes.current?.id ?? null;
     this.#controlTokenHookId = Hooks.on("controlToken", () => {
       this.#updateButtonStates();
     });
-    this.#canvasReadyHookId = Hooks.on("canvasReady", () => {
-      this.#updateButtonStates();
+    this.#sceneSwitchHookId = Hooks.on("canvasReady", () => {
+      void this.#onSceneSwitch();
     });
   }
 
@@ -111,7 +113,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     options: fa.ApplicationClosingOptions = {},
   ): Promise<this> {
     Hooks.off("controlToken", this.#controlTokenHookId);
-    Hooks.off("canvasReady", this.#canvasReadyHookId);
+    Hooks.off("canvasReady", this.#sceneSwitchHookId);
     return super.close(options);
   }
 
@@ -356,6 +358,20 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
     selectedCombat.combatants = controlledTokenIds.map((id) => ({ id }));
     await this.#saveCombatsToScene();
+    await this.render();
+  }
+
+  async #onSceneSwitch(): Promise<void> {
+    const currentSceneId = game.scenes.current?.id ?? null;
+    if (currentSceneId === this.#sceneId) {
+      this.#updateButtonStates();
+      return;
+    }
+
+    this.#sceneId = currentSceneId;
+    this.#combatName = "";
+    this.#selectedCombatIndex = null;
+    this.#combats = this.#readCombatsFromScene();
     await this.render();
   }
 
