@@ -32,6 +32,8 @@
 }
 
 .combat-manager .combat-manager-name {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -76,6 +78,10 @@
 
 .combat-manager .combat-manager-combatants-header h3 {
   margin: 0;
+}
+
+.combat-manager .combat-manager-selected-name-input {
+  flex: 1;
 }
 
 .combat-manager .combat-manager-combatants-list {

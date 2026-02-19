@@ -161,6 +161,9 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const updateButton = root.querySelector<HTMLButtonElement>(
       "button[data-action='update-combat']",
     );
+    const selectedNameInput = root.querySelector<HTMLInputElement>(
+      "input[data-action='rename-selected-combat']",
+    );
 
     if (nameInput instanceof HTMLInputElement) {
       nameInput.addEventListener("input", () => {
@@ -175,6 +178,17 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
     if (updateButton instanceof HTMLButtonElement) {
       updateButton.addEventListener("click", () => void this.#onUpdateCombat());
+    }
+
+    if (selectedNameInput instanceof HTMLInputElement) {
+      selectedNameInput.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        selectedNameInput.blur();
+      });
+      selectedNameInput.addEventListener("change", () => {
+        void this.#onRenameSelectedCombat(selectedNameInput.value);
+      });
     }
 
     for (const row of Array.from(
@@ -290,6 +304,31 @@ export class CombatManagerApp extends CombatManagerAppBase {
     await this.render();
   }
 
+  async #onRenameSelectedCombat(nextName: string): Promise<void> {
+    if (this.#selectedCombatIndex === null) return;
+    const index = this.#selectedCombatIndex;
+    const combat = this.#combats[index];
+    if (!combat) return;
+
+    const name = nextName.trim();
+    if (!name) {
+      ui.notifications.warn("Combat name cannot be empty.");
+      await this.render();
+      return;
+    }
+
+    if (this.#hasCombatWithName(name, index)) {
+      ui.notifications.warn(`A combat named "${name}" already exists.`);
+      await this.render();
+      return;
+    }
+
+    if (combat.name === name) return;
+    combat.name = name;
+    await this.#saveCombatsToScene();
+    await this.render();
+  }
+
   async #onToggleCombatSelection(index: number): Promise<void> {
     if (index < 0 || index >= this.#combats.length) return;
 
@@ -320,11 +359,12 @@ export class CombatManagerApp extends CombatManagerAppBase {
     await this.render();
   }
 
-  #hasCombatWithName(name: string): boolean {
+  #hasCombatWithName(name: string, ignoreIndex: number | null = null): boolean {
     const normalized = name.trim().toLocaleLowerCase();
-    return this.#combats.some(
-      (combat) => combat.name.trim().toLocaleLowerCase() === normalized,
-    );
+    return this.#combats.some((combat, index) => {
+      if (ignoreIndex !== null && index === ignoreIndex) return false;
+      return combat.name.trim().toLocaleLowerCase() === normalized;
+    });
   }
 
   #getSelectedCombat(): CombatEntry | null {

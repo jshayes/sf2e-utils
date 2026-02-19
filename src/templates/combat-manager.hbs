@@ -42,7 +42,12 @@
   {{#if hasSelectedCombat}}
     <div class="combat-manager-combatants">
       <div class="combat-manager-combatants-header">
-        <h3>{{selectedCombatName}}</h3>
+        <input
+          type="text"
+          class="combat-manager-selected-name-input"
+          data-action="rename-selected-combat"
+          value="{{selectedCombatName}}"
+        />
         <button type="button" data-action="update-combat" {{#unless canUpdateCombat}}disabled{{/unless}}>
           Update Combat
         </button>
