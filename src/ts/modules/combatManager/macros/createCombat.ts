@@ -18,6 +18,10 @@ type CombatEntry = {
   combatId: string | null;
 };
 
+type Input = {
+  name: string;
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -73,15 +77,16 @@ function getTokenDocumentsByCombatants(
   return scene.tokens.filter((token) => tokenIds.has(token.id));
 }
 
-function validateInput(name: unknown): asserts name is string {
+function validateInput(name: Input): asserts name is Input {
   validate(
     [
       (scope) => ({
-        condition: typeof scope !== "string",
+        condition: typeof scope?.name !== "string",
         message: `Combat name must be a string, received: ${typeof scope}`,
       }),
       (scope) => ({
-        condition: typeof scope === "string" && scope.trim().length === 0,
+        condition:
+          typeof scope?.name === "string" && scope?.name.trim().length === 0,
         message: "Combat name cannot be empty.",
       }),
     ],
@@ -107,8 +112,8 @@ async function saveSceneCombats(
   await scene.setFlag(moduleId, COMBAT_MANAGER_FLAG_KEY, combats);
 }
 
-export async function createCombat(name: string): Promise<void> {
-  validateInput(name);
+export async function createCombat(input: Input): Promise<void> {
+  validateInput(input);
 
   const scene = game.scenes.current;
   if (!scene) {
@@ -117,9 +122,9 @@ export async function createCombat(name: string): Promise<void> {
   }
 
   const combats = getSceneCombats(scene);
-  const entry = getCombatByName(combats, name);
+  const entry = getCombatByName(combats, input.name);
   if (!entry) {
-    ui.notifications.warn(`No saved combat named "${name}" was found.`);
+    ui.notifications.warn(`No saved combat named "${input.name}" was found.`);
     return;
   }
   const { combat, index } = entry;
