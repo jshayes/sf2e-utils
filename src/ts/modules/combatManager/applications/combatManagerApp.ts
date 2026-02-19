@@ -164,7 +164,12 @@ export class CombatManagerApp extends CombatManagerAppBase {
   }
 
   #canAddCombat(): boolean {
-    return this.#combatName.trim().length > 0 && getControlledTokenIds().length > 0;
+    const name = this.#combatName.trim();
+    return (
+      name.length > 0 &&
+      !this.#hasCombatWithName(name) &&
+      getControlledTokenIds().length > 0
+    );
   }
 
   #updateAddButtonState(): void {
@@ -207,6 +212,10 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const name = this.#combatName.trim();
     const controlledTokenIds = getControlledTokenIds();
     if (!name || controlledTokenIds.length === 0) return;
+    if (this.#hasCombatWithName(name)) {
+      ui.notifications.warn(`A combat named "${name}" already exists.`);
+      return;
+    }
 
     this.#combats.push({
       name,
@@ -223,5 +232,12 @@ export class CombatManagerApp extends CombatManagerAppBase {
     this.#combats.splice(index, 1);
     await this.#saveCombatsToScene();
     await this.render();
+  }
+
+  #hasCombatWithName(name: string): boolean {
+    const normalized = name.trim().toLocaleLowerCase();
+    return this.#combats.some(
+      (combat) => combat.name.trim().toLocaleLowerCase() === normalized,
+    );
   }
 }
