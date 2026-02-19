@@ -14,8 +14,17 @@ type CombatEntry = {
 type CombatManagerContext = fa.ApplicationRenderContext & {
   combatName: string;
   canAddCombat: boolean;
-  combats: Array<{ name: string; combatantCount: number }>;
+  combats: Array<{
+    index: number;
+    name: string;
+    combatantCount: number;
+    isSelected: boolean;
+  }>;
   hasCombats: boolean;
+  hasSelectedCombat: boolean;
+  selectedCombatName: string;
+  selectedCombatants: Array<{ id: string; name: string; image: string }>;
+  canUpdateCombat: boolean;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -35,7 +44,9 @@ function coerceCombat(value: unknown): CombatEntry | null {
   const name = value.name;
   if (typeof name !== "string") return null;
 
-  const combatantsInput = Array.isArray(value.combatants) ? value.combatants : [];
+  const combatantsInput = Array.isArray(value.combatants)
+    ? value.combatants
+    : [];
   const combatants = combatantsInput
     .map(coerceCombatant)
     .filter((entry): entry is CombatantEntry => entry !== null);
@@ -55,9 +66,10 @@ function parseInteger(value: unknown, fallback = 0): number {
   return Number.parseInt(text, 10);
 }
 
-const CombatManagerAppBase = foundry.applications.api.HandlebarsApplicationMixin(
-  foundry.applications.api.ApplicationV2,
-);
+const CombatManagerAppBase =
+  foundry.applications.api.HandlebarsApplicationMixin(
+    foundry.applications.api.ApplicationV2,
+  );
 
 export class CombatManagerApp extends CombatManagerAppBase {
   static override DEFAULT_OPTIONS = {
@@ -80,6 +92,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
   #combatName = "";
   #combats: CombatEntry[];
+  #selectedCombatIndex: number | null = null;
   #controlTokenHookId: number;
   #canvasReadyHookId: number;
 
@@ -87,10 +100,10 @@ export class CombatManagerApp extends CombatManagerAppBase {
     super({});
     this.#combats = this.#readCombatsFromScene();
     this.#controlTokenHookId = Hooks.on("controlToken", () => {
-      this.#updateAddButtonState();
+      this.#updateButtonStates();
     });
     this.#canvasReadyHookId = Hooks.on("canvasReady", () => {
-      this.#updateAddButtonState();
+      this.#updateButtonStates();
     });
   }
 
@@ -108,16 +121,25 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const context = (await super._prepareContext(
       options,
     )) as fa.ApplicationRenderContext;
+    const selectedCombat = this.#getSelectedCombat();
 
     return {
       ...context,
       combatName: this.#combatName,
       canAddCombat: this.#canAddCombat(),
-      combats: this.#combats.map((combat) => ({
+      combats: this.#combats.map((combat, index) => ({
+        index,
         name: combat.name,
         combatantCount: combat.combatants.length,
+        isSelected: this.#selectedCombatIndex === index,
       })),
       hasCombats: this.#combats.length > 0,
+      hasSelectedCombat: selectedCombat !== null,
+      selectedCombatName: selectedCombat?.name ?? "",
+      selectedCombatants:
+        selectedCombat === null ? [] : this.#buildCombatantRows(selectedCombat),
+      canUpdateCombat:
+        selectedCombat !== null && getControlledTokenIds().length > 0,
     };
   }
 
@@ -136,11 +158,14 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const addButton = root.querySelector<HTMLButtonElement>(
       "button[data-action='add-combat']",
     );
+    const updateButton = root.querySelector<HTMLButtonElement>(
+      "button[data-action='update-combat']",
+    );
 
     if (nameInput instanceof HTMLInputElement) {
       nameInput.addEventListener("input", () => {
         this.#combatName = nameInput.value;
-        this.#updateAddButtonState();
+        this.#updateButtonStates();
       });
     }
 
@@ -148,19 +173,34 @@ export class CombatManagerApp extends CombatManagerAppBase {
       addButton.addEventListener("click", () => void this.#onAddCombat());
     }
 
+    if (updateButton instanceof HTMLButtonElement) {
+      updateButton.addEventListener("click", () => void this.#onUpdateCombat());
+    }
+
+    for (const row of Array.from(
+      root.querySelectorAll<HTMLElement>("[data-action='select-combat']"),
+    )) {
+      row.addEventListener("click", () => {
+        const index = parseInteger(row.dataset.index, -1);
+        if (index < 0) return;
+        void this.#onToggleCombatSelection(index);
+      });
+    }
+
     for (const deleteButton of Array.from(
       root.querySelectorAll<HTMLButtonElement>(
         "button[data-action='delete-combat']",
       ),
     )) {
-      deleteButton.addEventListener("click", () => {
+      deleteButton.addEventListener("click", (event) => {
+        event.stopPropagation();
         const index = parseInteger(deleteButton.dataset.index, -1);
         if (index < 0) return;
         void this.#onDeleteCombat(index);
       });
     }
 
-    this.#updateAddButtonState();
+    this.#updateButtonStates();
   }
 
   #canAddCombat(): boolean {
@@ -172,16 +212,23 @@ export class CombatManagerApp extends CombatManagerAppBase {
     );
   }
 
-  #updateAddButtonState(): void {
+  #updateButtonStates(): void {
     const root = this.element;
     if (!(root instanceof HTMLElement)) return;
 
     const addButton = root.querySelector<HTMLButtonElement>(
       "button[data-action='add-combat']",
     );
-    if (!(addButton instanceof HTMLButtonElement)) return;
+    if (addButton instanceof HTMLButtonElement) {
+      addButton.disabled = !this.#canAddCombat();
+    }
 
-    addButton.disabled = !this.#canAddCombat();
+    const updateButton = root.querySelector<HTMLButtonElement>(
+      "button[data-action='update-combat']",
+    );
+    if (updateButton instanceof HTMLButtonElement) {
+      updateButton.disabled = !this.#canUpdateCombat();
+    }
   }
 
   #readCombatsFromScene(): CombatEntry[] {
@@ -230,6 +277,45 @@ export class CombatManagerApp extends CombatManagerAppBase {
   async #onDeleteCombat(index: number): Promise<void> {
     if (index < 0 || index >= this.#combats.length) return;
     this.#combats.splice(index, 1);
+    if (this.#selectedCombatIndex === index) {
+      this.#selectedCombatIndex = null;
+      this.#releaseAllTokens();
+    } else if (
+      this.#selectedCombatIndex !== null &&
+      this.#selectedCombatIndex > index
+    ) {
+      this.#selectedCombatIndex -= 1;
+    }
+    await this.#saveCombatsToScene();
+    await this.render();
+  }
+
+  async #onToggleCombatSelection(index: number): Promise<void> {
+    if (index < 0 || index >= this.#combats.length) return;
+
+    if (this.#selectedCombatIndex === index) {
+      this.#selectedCombatIndex = null;
+      this.#releaseAllTokens();
+      await this.render();
+      return;
+    }
+
+    this.#selectedCombatIndex = index;
+    const combat = this.#combats[index];
+    if (combat) {
+      this.#controlTokensForCombat(combat);
+    }
+    await this.render();
+  }
+
+  async #onUpdateCombat(): Promise<void> {
+    const selectedCombat = this.#getSelectedCombat();
+    if (!selectedCombat) return;
+
+    const controlledTokenIds = getControlledTokenIds();
+    if (controlledTokenIds.length === 0) return;
+
+    selectedCombat.combatants = controlledTokenIds.map((id) => ({ id }));
     await this.#saveCombatsToScene();
     await this.render();
   }
@@ -239,5 +325,58 @@ export class CombatManagerApp extends CombatManagerAppBase {
     return this.#combats.some(
       (combat) => combat.name.trim().toLocaleLowerCase() === normalized,
     );
+  }
+
+  #getSelectedCombat(): CombatEntry | null {
+    if (
+      this.#selectedCombatIndex === null ||
+      this.#selectedCombatIndex < 0 ||
+      this.#selectedCombatIndex >= this.#combats.length
+    ) {
+      return null;
+    }
+    return this.#combats[this.#selectedCombatIndex] ?? null;
+  }
+
+  #canUpdateCombat(): boolean {
+    return (
+      this.#getSelectedCombat() !== null && getControlledTokenIds().length > 0
+    );
+  }
+
+  #getPlaceableTokenById(id: string) {
+    const tokens = canvas?.tokens?.placeables ?? [];
+    for (const token of tokens) {
+      if (token.id === id) return token;
+    }
+    return null;
+  }
+
+  #releaseAllTokens(): void {
+    canvas?.tokens?.releaseAll();
+  }
+
+  #controlTokensForCombat(combat: CombatEntry): void {
+    this.#releaseAllTokens();
+    for (const combatant of combat.combatants) {
+      const token = this.#getPlaceableTokenById(combatant.id);
+      token?.control({ releaseOthers: false });
+    }
+  }
+
+  #buildCombatantRows(
+    combat: CombatEntry,
+  ): Array<{ id: string; name: string; image: string }> {
+    return combat.combatants.map((combatant) => {
+      const token = this.#getPlaceableTokenById(combatant.id);
+      const tokenDocument = token?.document;
+      const actorImage = tokenDocument?.actor?.img;
+      const tokenImage = tokenDocument?.texture?.src;
+      return {
+        id: combatant.id,
+        name: tokenDocument?.name ?? `Missing Token (${combatant.id})`,
+        image: actorImage || tokenImage || "icons/svg/mystery-man.svg",
+      };
+    });
   }
 }

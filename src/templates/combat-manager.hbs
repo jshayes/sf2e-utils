@@ -14,7 +14,11 @@
   <div class="combat-manager-list">
     {{#if hasCombats}}
       {{#each combats}}
-        <div class="combat-manager-row">
+        <div
+          class="combat-manager-row {{#if this.isSelected}}is-selected{{/if}}"
+          data-action="select-combat"
+          data-index="{{this.index}}"
+        >
           <span class="combat-manager-name">{{this.name}}</span>
           <div class="combat-manager-controls">
             <span class="combat-manager-count">{{this.combatantCount}} combatants</span>
@@ -34,4 +38,23 @@
       <p class="combat-manager-empty">No combats saved for this scene.</p>
     {{/if}}
   </div>
+
+  {{#if hasSelectedCombat}}
+    <div class="combat-manager-combatants">
+      <div class="combat-manager-combatants-header">
+        <h3>{{selectedCombatName}}</h3>
+        <button type="button" data-action="update-combat" {{#unless canUpdateCombat}}disabled{{/unless}}>
+          Update Combat
+        </button>
+      </div>
+      <div class="combat-manager-combatants-list">
+        {{#each selectedCombatants}}
+          <div class="combat-manager-combatant-row">
+            <img src="{{this.image}}" alt="" />
+            <span>{{this.name}}</span>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  {{/if}}
 </div>

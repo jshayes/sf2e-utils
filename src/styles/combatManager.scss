@@ -16,9 +16,13 @@
 
 .combat-manager .combat-manager-row {
   align-items: center;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
   display: flex;
   gap: 0.5rem;
   justify-content: space-between;
+  padding: 0.25rem 0.4rem;
 }
 
 .combat-manager .combat-manager-controls {
@@ -46,7 +50,49 @@
   min-width: 2rem;
 }
 
+.combat-manager .combat-manager-row.is-selected {
+  background: var(--color-bg-option);
+  border-color: var(--color-border-highlight);
+}
+
 .combat-manager .combat-manager-empty {
   color: var(--color-text-dark-secondary);
   margin: 0;
+}
+
+.combat-manager .combat-manager-combatants {
+  border-top: 1px solid var(--color-border-light-primary);
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+.combat-manager .combat-manager-combatants-header {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.combat-manager .combat-manager-combatants-header h3 {
+  margin: 0;
+}
+
+.combat-manager .combat-manager-combatants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.combat-manager .combat-manager-combatant-row {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.combat-manager .combat-manager-combatant-row img {
+  border-radius: 3px;
+  height: 24px;
+  object-fit: cover;
+  width: 24px;
 }
