@@ -10,6 +10,7 @@ import {
 
 type CombatantEntry = {
   id: string;
+  round: number;
 };
 
 type CombatEntry = {
@@ -30,7 +31,12 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
   if (!isRecord(value)) return null;
   const id = value.id;
   if (typeof id !== "string" || id.trim().length === 0) return null;
-  return { id };
+  const roundValue = value.round;
+  const round =
+    typeof roundValue === "number" && Number.isFinite(roundValue)
+      ? Math.max(0, Math.floor(roundValue))
+      : 0;
+  return { id, round };
 }
 
 function coerceCombat(value: unknown): CombatEntry | null {
@@ -136,10 +142,10 @@ export async function createCombat(input: Input): Promise<void> {
     return;
   }
 
-  const tokenDocuments = getTokenDocumentsByCombatants(
-    scene,
-    combat.combatants,
+  const joiningNow = combat.combatants.filter(
+    (combatant) => combatant.round <= 0,
   );
+  const tokenDocuments = getTokenDocumentsByCombatants(scene, joiningNow);
   if (tokenDocuments.length === 0) {
     ui.notifications.warn(
       `No tokens were found on the scene for combat "${combat.name}".`,

@@ -94,6 +94,15 @@
   align-items: center;
   display: flex;
   gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.combat-manager .combat-manager-combatant-main {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .combat-manager .combat-manager-combatant-row img {
@@ -101,4 +110,19 @@
   height: 24px;
   object-fit: cover;
   width: 24px;
+}
+
+.combat-manager .combat-manager-combatant-round {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.combat-manager .combat-manager-combatant-round label {
+  color: var(--color-text-dark-secondary);
+  font-size: var(--font-size-12);
+}
+
+.combat-manager .combat-manager-combatant-round input {
+  max-width: 4rem;
 }

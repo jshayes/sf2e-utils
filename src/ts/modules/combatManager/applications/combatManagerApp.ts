@@ -3,6 +3,7 @@ import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
 
 type CombatantEntry = {
   id: string;
+  round: number;
 };
 
 type CombatEntry = {
@@ -23,7 +24,12 @@ type CombatManagerContext = fa.ApplicationRenderContext & {
   hasCombats: boolean;
   hasSelectedCombat: boolean;
   selectedCombatName: string;
-  selectedCombatants: Array<{ id: string; name: string; image: string }>;
+  selectedCombatants: Array<{
+    id: string;
+    name: string;
+    image: string;
+    round: number;
+  }>;
   canUpdateCombat: boolean;
 };
 
@@ -35,7 +41,12 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
   if (!isRecord(value)) return null;
   const id = value.id;
   if (typeof id !== "string" || id.trim().length === 0) return null;
-  return { id };
+  const roundValue = value.round;
+  const round =
+    typeof roundValue === "number" && Number.isFinite(roundValue)
+      ? Math.max(0, Math.floor(roundValue))
+      : 0;
+  return { id, round };
 }
 
 function coerceCombat(value: unknown): CombatEntry | null {
@@ -194,6 +205,18 @@ export class CombatManagerApp extends CombatManagerAppBase {
       });
     }
 
+    for (const roundInput of Array.from(
+      root.querySelectorAll<HTMLInputElement>("[data-action='set-combatant-round']"),
+    )) {
+      roundInput.addEventListener("change", () => {
+        const tokenId = String(roundInput.dataset.id ?? "").trim();
+        if (!tokenId) return;
+        const parsed = Number.parseInt(roundInput.value, 10);
+        const round = Number.isFinite(parsed) ? parsed : 0;
+        void this.#onSetCombatantRound(tokenId, round);
+      });
+    }
+
     for (const row of Array.from(
       root.querySelectorAll<HTMLElement>("[data-action='select-combat']"),
     )) {
@@ -283,7 +306,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
     this.#combats.push({
       name,
-      combatants: controlledTokenIds.map((id) => ({ id })),
+      combatants: controlledTokenIds.map((id) => ({ id, round: 0 })),
       combatId: null,
     });
 
@@ -358,9 +381,20 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const controlledTokenIds = getControlledTokenIds();
     if (controlledTokenIds.length === 0) return;
 
-    selectedCombat.combatants = controlledTokenIds.map((id) => ({ id }));
+    selectedCombat.combatants = controlledTokenIds.map((id) => ({ id, round: 0 }));
     await this.#saveCombatsToScene();
     await this.render();
+  }
+
+  async #onSetCombatantRound(tokenId: string, round: number): Promise<void> {
+    const selectedCombat = this.#getSelectedCombat();
+    if (!selectedCombat) return;
+
+    const combatant = selectedCombat.combatants.find((x) => x.id === tokenId);
+    if (!combatant) return;
+
+    combatant.round = Math.max(0, Math.floor(round));
+    await this.#saveCombatsToScene();
   }
 
   async #onSceneSwitch(): Promise<void> {
@@ -424,7 +458,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
   #buildCombatantRows(
     combat: CombatEntry,
-  ): Array<{ id: string; name: string; image: string }> {
+  ): Array<{ id: string; name: string; image: string; round: number }> {
     return combat.combatants.map((combatant) => {
       const token = this.#getPlaceableTokenById(combatant.id);
       const tokenDocument = token?.document;
@@ -434,6 +468,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
         id: combatant.id,
         name: tokenDocument?.name ?? `Missing Token (${combatant.id})`,
         image: actorImage || tokenImage || "icons/svg/mystery-man.svg",
+        round: combatant.round,
       };
     });
   }

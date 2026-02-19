@@ -55,8 +55,21 @@
       <div class="combat-manager-combatants-list">
         {{#each selectedCombatants}}
           <div class="combat-manager-combatant-row">
-            <img src="{{this.image}}" alt="" />
-            <span>{{this.name}}</span>
+            <div class="combat-manager-combatant-main">
+              <img src="{{this.image}}" alt="" />
+              <span>{{this.name}}</span>
+            </div>
+            <div class="combat-manager-combatant-round">
+              <label>Round</label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value="{{this.round}}"
+                data-action="set-combatant-round"
+                data-id="{{this.id}}"
+              />
+            </div>
           </div>
         {{/each}}
       </div>
