@@ -178,6 +178,9 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const updateButton = root.querySelector<HTMLButtonElement>(
       "button[data-action='update-combat']",
     );
+    const selectCombatantsButton = root.querySelector<HTMLButtonElement>(
+      "button[data-action='select-combatants']",
+    );
     const selectedNameInput = root.querySelector<HTMLInputElement>(
       "input[data-action='rename-selected-combat']",
     );
@@ -195,6 +198,11 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
     if (updateButton instanceof HTMLButtonElement) {
       updateButton.addEventListener("click", () => void this.#onUpdateCombat());
+    }
+    if (selectCombatantsButton instanceof HTMLButtonElement) {
+      selectCombatantsButton.addEventListener("click", () =>
+        void this.#onSelectCombatants(),
+      );
     }
 
     if (selectedNameInput instanceof HTMLInputElement) {
@@ -383,17 +391,18 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
     if (this.#selectedCombatIndex === index) {
       this.#selectedCombatIndex = null;
-      this.#releaseAllTokens();
       await this.render();
       return;
     }
 
     this.#selectedCombatIndex = index;
-    const combat = this.#combats[index];
-    if (combat) {
-      this.#controlTokensForCombat(combat);
-    }
     await this.render();
+  }
+
+  async #onSelectCombatants(): Promise<void> {
+    const selectedCombat = this.#getSelectedCombat();
+    if (!selectedCombat) return;
+    this.#controlTokensForCombat(selectedCombat);
   }
 
   async #onUpdateCombat(): Promise<void> {

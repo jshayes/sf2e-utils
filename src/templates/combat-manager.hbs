@@ -48,9 +48,14 @@
           data-action="rename-selected-combat"
           value="{{selectedCombatName}}"
         />
-        <button type="button" data-action="update-combat" {{#unless canUpdateCombat}}disabled{{/unless}}>
-          Update Combat
-        </button>
+        <div class="combat-manager-combatants-actions">
+          <button type="button" data-action="select-combatants" aria-label="Select combatants">
+            <i class="fa-solid fa-crosshairs"></i>
+          </button>
+          <button type="button" data-action="update-combat" aria-label="Update combat" {{#unless canUpdateCombat}}disabled{{/unless}}>
+            <i class="fa-solid fa-floppy-disk"></i>
+          </button>
+        </div>
       </div>
       <div class="combat-manager-combatants-list">
         {{#each selectedCombatants}}

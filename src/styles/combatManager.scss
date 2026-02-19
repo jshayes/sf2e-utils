@@ -84,6 +84,11 @@
   flex: 1;
 }
 
+.combat-manager .combat-manager-combatants-actions {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
 .combat-manager .combat-manager-combatants-list {
   display: flex;
   flex-direction: column;
