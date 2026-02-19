@@ -1,6 +1,5 @@
 import { moduleId } from "../../../constants";
-
-const FLAG_KEY = "combat-manager.combats";
+import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
 
 type CombatantEntry = {
   id: string;
@@ -251,7 +250,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const scene = game.scenes.current;
     if (!scene) return [];
 
-    const raw = scene.getFlag(moduleId, FLAG_KEY);
+    const raw = scene.getFlag(moduleId, COMBAT_MANAGER_FLAG_KEY);
     if (!Array.isArray(raw)) return [];
 
     return raw
@@ -262,7 +261,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
   async #saveCombatsToScene(): Promise<void> {
     const scene = game.scenes.current;
     if (!scene) return;
-    await scene.setFlag(moduleId, FLAG_KEY, this.#combats);
+    await scene.setFlag(moduleId, COMBAT_MANAGER_FLAG_KEY, this.#combats);
   }
 
   async #onAddCombat(): Promise<void> {

@@ -1,6 +1,8 @@
+import { createCombat } from "./macros/createCombat";
 import { open } from "./macros/open";
 
 export const combatManagerMacros = {
+  createCombat,
   open,
 };
 
