@@ -9,6 +9,7 @@ type CombatantEntry = {
 type CombatEntry = {
   name: string;
   combatants: CombatantEntry[];
+  combatId: string | null;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -30,8 +31,9 @@ function coerceCombat(value: unknown): CombatEntry | null {
   const combatants = (Array.isArray(value.combatants) ? value.combatants : [])
     .map(coerceCombatant)
     .filter((combatant): combatant is CombatantEntry => combatant !== null);
+  const combatId = typeof value.combatId === "string" ? value.combatId : null;
 
-  return { name, combatants };
+  return { name, combatants, combatId };
 }
 
 function getSceneCombats(scene: foundry.documents.Scene): CombatEntry[] {
@@ -43,13 +45,18 @@ function getSceneCombats(scene: foundry.documents.Scene): CombatEntry[] {
     .filter((combat): combat is CombatEntry => combat !== null);
 }
 
-function getCombatByName(combats: CombatEntry[], name: string): CombatEntry | null {
+function getCombatByName(
+  combats: CombatEntry[],
+  name: string,
+): { combat: CombatEntry; index: number } | null {
   const normalized = name.trim().toLocaleLowerCase();
-  return (
-    combats.find(
-      (combat) => combat.name.trim().toLocaleLowerCase() === normalized,
-    ) ?? null
+  const index = combats.findIndex(
+    (combat) => combat.name.trim().toLocaleLowerCase() === normalized,
   );
+  if (index < 0) return null;
+  const combat = combats[index];
+  if (!combat) return null;
+  return { combat, index };
 }
 
 function getTokenDocumentsByCombatants(
@@ -76,6 +83,24 @@ function validateInput(name: unknown): asserts name is string {
   );
 }
 
+function getExistingAssociatedCombat(
+  scene: foundry.documents.Scene,
+  combat: CombatEntry,
+): foundry.documents.Combat | null {
+  if (!combat.combatId) return null;
+  const existing = game.combats?.get(combat.combatId);
+  if (!existing) return null;
+  if (existing.scene?.id !== scene.id) return null;
+  return existing;
+}
+
+async function saveSceneCombats(
+  scene: foundry.documents.Scene,
+  combats: CombatEntry[],
+): Promise<void> {
+  await scene.setFlag(moduleId, COMBAT_MANAGER_FLAG_KEY, combats);
+}
+
 export async function createCombat(name: string): Promise<void> {
   validateInput(name);
 
@@ -86,9 +111,17 @@ export async function createCombat(name: string): Promise<void> {
   }
 
   const combats = getSceneCombats(scene);
-  const combat = getCombatByName(combats, name);
-  if (!combat) {
+  const entry = getCombatByName(combats, name);
+  if (!entry) {
     ui.notifications.warn(`No saved combat named "${name}" was found.`);
+    return;
+  }
+  const { combat, index } = entry;
+
+  const existingCombat = getExistingAssociatedCombat(scene, combat);
+  if (existingCombat) {
+    await existingCombat.activate();
+    ui.notifications.info(`Activated existing combat "${combat.name}".`);
     return;
   }
 
@@ -115,6 +148,12 @@ export async function createCombat(name: string): Promise<void> {
     })),
   );
   await createdCombat.activate();
+
+  const updatedCombat = combats[index];
+  if (updatedCombat) {
+    updatedCombat.combatId = createdCombat.id;
+    await saveSceneCombats(scene, combats);
+  }
 
   ui.notifications.info(
     `Created and activated combat "${combat.name}" with ${tokenDocuments.length} combatants.`,

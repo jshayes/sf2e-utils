@@ -8,6 +8,7 @@ type CombatantEntry = {
 type CombatEntry = {
   name: string;
   combatants: CombatantEntry[];
+  combatId: string | null;
 };
 
 type CombatManagerContext = fa.ApplicationRenderContext & {
@@ -49,8 +50,9 @@ function coerceCombat(value: unknown): CombatEntry | null {
   const combatants = combatantsInput
     .map(coerceCombatant)
     .filter((entry): entry is CombatantEntry => entry !== null);
+  const combatId = typeof value.combatId === "string" ? value.combatId : null;
 
-  return { name, combatants };
+  return { name, combatants, combatId };
 }
 
 function getControlledTokenIds(): string[] {
@@ -282,6 +284,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     this.#combats.push({
       name,
       combatants: controlledTokenIds.map((id) => ({ id })),
+      combatId: null,
     });
 
     this.#combatName = "";
