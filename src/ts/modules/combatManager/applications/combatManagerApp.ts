@@ -4,6 +4,7 @@ import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
 type CombatantEntry = {
   id: string;
   round: number;
+  enabled: boolean;
 };
 
 type CombatEntry = {
@@ -29,6 +30,7 @@ type CombatManagerContext = fa.ApplicationRenderContext & {
     name: string;
     image: string;
     round: number;
+    enabled: boolean;
   }>;
   canUpdateCombat: boolean;
 };
@@ -46,7 +48,9 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
     typeof roundValue === "number" && Number.isFinite(roundValue)
       ? Math.max(0, Math.floor(roundValue))
       : 0;
-  return { id, round };
+  const enabled =
+    typeof value.enabled === "boolean" ? value.enabled : true;
+  return { id, round, enabled };
 }
 
 function coerceCombat(value: unknown): CombatEntry | null {
@@ -109,6 +113,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
   #hoverPreviewPreviousTokenIds: string[] | null = null;
   #controlTokenHookId: number;
   #sceneSwitchHookId: number;
+  #updateSceneHookId: number;
   #sceneId: string | null = null;
 
   constructor() {
@@ -121,6 +126,9 @@ export class CombatManagerApp extends CombatManagerAppBase {
     this.#sceneSwitchHookId = Hooks.on("canvasReady", () => {
       void this.#onSceneSwitch();
     });
+    this.#updateSceneHookId = Hooks.on("updateScene", (scene) => {
+      void this.#onSceneUpdated(scene);
+    });
   }
 
   override async close(
@@ -129,6 +137,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     this.#clearCombatantHover();
     Hooks.off("controlToken", this.#controlTokenHookId);
     Hooks.off("canvasReady", this.#sceneSwitchHookId);
+    Hooks.off("updateScene", this.#updateSceneHookId);
     return super.close(options);
   }
 
@@ -227,6 +236,18 @@ export class CombatManagerApp extends CombatManagerAppBase {
         const parsed = Number.parseInt(roundInput.value, 10);
         const round = Number.isFinite(parsed) ? parsed : 0;
         void this.#onSetCombatantRound(tokenId, round);
+      });
+    }
+
+    for (const enabledInput of Array.from(
+      root.querySelectorAll<HTMLInputElement>(
+        "[data-action='set-combatant-enabled']",
+      ),
+    )) {
+      enabledInput.addEventListener("change", () => {
+        const tokenId = String(enabledInput.dataset.id ?? "").trim();
+        if (!tokenId) return;
+        void this.#onSetCombatantEnabled(tokenId, enabledInput.checked);
       });
     }
 
@@ -336,7 +357,11 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
     this.#combats.push({
       name,
-      combatants: controlledTokenIds.map((id) => ({ id, round: 0 })),
+      combatants: controlledTokenIds.map((id) => ({
+        id,
+        round: 0,
+        enabled: true,
+      })),
       combatId: null,
     });
 
@@ -413,11 +438,15 @@ export class CombatManagerApp extends CombatManagerAppBase {
     if (controlledTokenIds.length === 0) return;
 
     const previousRounds = new Map(
-      selectedCombat.combatants.map((combatant) => [combatant.id, combatant.round]),
+      selectedCombat.combatants.map((combatant) => [
+        combatant.id,
+        { round: combatant.round, enabled: combatant.enabled },
+      ]),
     );
     selectedCombat.combatants = controlledTokenIds.map((id) => ({
       id,
-      round: previousRounds.get(id) ?? 0,
+      round: previousRounds.get(id)?.round ?? 0,
+      enabled: previousRounds.get(id)?.enabled ?? true,
     }));
     await this.#saveCombatsToScene();
     await this.render();
@@ -434,6 +463,20 @@ export class CombatManagerApp extends CombatManagerAppBase {
     await this.#saveCombatsToScene();
   }
 
+  async #onSetCombatantEnabled(
+    tokenId: string,
+    enabled: boolean,
+  ): Promise<void> {
+    const selectedCombat = this.#getSelectedCombat();
+    if (!selectedCombat) return;
+
+    const combatant = selectedCombat.combatants.find((x) => x.id === tokenId);
+    if (!combatant) return;
+
+    combatant.enabled = enabled;
+    await this.#saveCombatsToScene();
+  }
+
   async #onSceneSwitch(): Promise<void> {
     const currentSceneId = game.scenes.current?.id ?? null;
     if (currentSceneId === this.#sceneId) {
@@ -445,6 +488,19 @@ export class CombatManagerApp extends CombatManagerAppBase {
     this.#combatName = "";
     this.#selectedCombatIndex = null;
     this.#combats = this.#readCombatsFromScene();
+    await this.render();
+  }
+
+  async #onSceneUpdated(scene: foundry.documents.Scene): Promise<void> {
+    if (scene.id !== this.#sceneId) return;
+
+    this.#combats = this.#readCombatsFromScene();
+    if (
+      this.#selectedCombatIndex !== null &&
+      this.#selectedCombatIndex >= this.#combats.length
+    ) {
+      this.#selectedCombatIndex = null;
+    }
     await this.render();
   }
 
@@ -547,7 +603,13 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
   #buildCombatantRows(
     combat: CombatEntry,
-  ): Array<{ id: string; name: string; image: string; round: number }> {
+  ): Array<{
+    id: string;
+    name: string;
+    image: string;
+    round: number;
+    enabled: boolean;
+  }> {
     return combat.combatants.map((combatant) => {
       const token = this.#getPlaceableTokenById(combatant.id);
       const tokenDocument = token?.document;
@@ -558,6 +620,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
         name: tokenDocument?.name ?? `Missing Token (${combatant.id})`,
         image: actorImage || tokenImage || "icons/svg/mystery-man.svg",
         round: combatant.round,
+        enabled: combatant.enabled,
       };
     });
   }

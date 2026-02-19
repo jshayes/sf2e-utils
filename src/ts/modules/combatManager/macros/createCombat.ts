@@ -11,6 +11,7 @@ import {
 type CombatantEntry = {
   id: string;
   round: number;
+  enabled: boolean;
 };
 
 type CombatEntry = {
@@ -36,7 +37,8 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
     typeof roundValue === "number" && Number.isFinite(roundValue)
       ? Math.max(0, Math.floor(roundValue))
       : 0;
-  return { id, round };
+  const enabled = typeof value.enabled === "boolean" ? value.enabled : true;
+  return { id, round, enabled };
 }
 
 function coerceCombat(value: unknown): CombatEntry | null {
@@ -143,7 +145,7 @@ export async function createCombat(input: Input): Promise<void> {
   }
 
   const joiningNow = combat.combatants.filter(
-    (combatant) => combatant.round <= 0,
+    (combatant) => combatant.enabled && combatant.round <= 0,
   );
   const tokenDocuments = getTokenDocumentsByCombatants(scene, joiningNow);
   if (tokenDocuments.length === 0) {

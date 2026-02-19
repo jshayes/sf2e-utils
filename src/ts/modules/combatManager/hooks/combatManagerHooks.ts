@@ -10,6 +10,7 @@ import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
 type CombatantEntry = {
   id: string;
   round: number;
+  enabled: boolean;
 };
 
 type CombatEntry = {
@@ -31,7 +32,8 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
     typeof roundValue === "number" && Number.isFinite(roundValue)
       ? Math.max(0, Math.floor(roundValue))
       : 0;
-  return { id, round };
+  const enabled = typeof value.enabled === "boolean" ? value.enabled : true;
+  return { id, round, enabled };
 }
 
 function coerceCombat(value: unknown): CombatEntry | null {
@@ -68,7 +70,7 @@ function getPendingCombatantsForRound(
 
   return config.combatants.filter(
     (combatant) =>
-      combatant.round > 0 &&
+      combatant.enabled &&
       combatant.round <= round &&
       !existingTokenIds.has(combatant.id),
   );
@@ -177,7 +179,6 @@ export function registerCombatManagerHooks(): void {
 
           // Allow this one follow-up advance to proceed without interception.
           allowNextRoundAdvance.add(combatDoc.id);
-          console.log("next");
           await combatDoc.nextRound();
         } finally {
           processingRoundAdvance.delete(combatDoc.id);

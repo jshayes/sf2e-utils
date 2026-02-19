@@ -65,7 +65,14 @@
               <span>{{this.name}}</span>
             </div>
             <div class="combat-manager-combatant-round">
-              <label>Round</label>
+              <div class="combat-manager-enabled-toggle">
+                <input
+                  type="checkbox"
+                  data-action="set-combatant-enabled"
+                  data-id="{{this.id}}"
+                  {{#if this.enabled}}checked{{/if}}
+                />
+              </div>
               <input
                 type="number"
                 min="0"
