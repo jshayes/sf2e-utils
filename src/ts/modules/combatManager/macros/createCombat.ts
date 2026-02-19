@@ -1,6 +1,12 @@
+import { EncounterPF2e } from "foundry-pf2e";
 import { moduleId } from "../../../constants";
 import { validate } from "../../../helpers/validation";
 import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
+import {
+  getCurrentDiceRollSetting,
+  setDiceRollsTo,
+  setDiceRollsToDefault,
+} from "../../../macros/toggleDice";
 
 type CombatantEntry = {
   id: string;
@@ -125,9 +131,14 @@ export async function createCombat(name: string): Promise<void> {
     return;
   }
 
-  const tokenDocuments = getTokenDocumentsByCombatants(scene, combat.combatants);
+  const tokenDocuments = getTokenDocumentsByCombatants(
+    scene,
+    combat.combatants,
+  );
   if (tokenDocuments.length === 0) {
-    ui.notifications.warn(`No tokens were found on the scene for combat "${combat.name}".`);
+    ui.notifications.warn(
+      `No tokens were found on the scene for combat "${combat.name}".`,
+    );
     return;
   }
 
@@ -148,7 +159,18 @@ export async function createCombat(name: string): Promise<void> {
     })),
   );
   await createdCombat.activate();
-  await createdCombat.rollNPC();
+
+  const setting = getCurrentDiceRollSetting();
+  await setDiceRollsToDefault({ diceTypes: ["d20"], silent: true });
+  try {
+    await (createdCombat as EncounterPF2e).rollNPC({
+      skipDialog: true,
+    });
+  } finally {
+    if (setting) {
+      await setDiceRollsTo(setting, { diceTypes: ["d20"], silent: true });
+    }
+  }
 
   const updatedCombat = combats[index];
   if (updatedCombat) {
