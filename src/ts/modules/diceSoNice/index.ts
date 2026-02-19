@@ -1,7 +1,4 @@
-import {
-  registerDiceSoNiceHooks,
-  unregisterDiceSoNiceHooks,
-} from "./hooks/diceSoNiceHooks";
+import { registerDiceSoNiceHooks, unregisterDiceSoNiceHooks } from "./hooks";
 
 export function registerDiceSoNiceModule() {
   registerDiceSoNiceHooks();

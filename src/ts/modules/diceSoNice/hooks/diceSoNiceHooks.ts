@@ -1,91 +1,89 @@
 import { moduleId } from "../../../constants";
 import { DicePresetManagerApp } from "../applications/dicePresetManagerApp";
 import { FLAG_KEY } from "../constants";
-import { applyPreset, loadDiceForUser } from "../utils";
+import { DicePresetFlags, Die } from "../types";
+import { loadDiceForUser } from "../utils";
 
-function randomElement<T>(arr: T[]) {
-  return arr[Math.floor(Math.random() * arr.length)];
+function getElementForMessage<T>(messageId: string, arr: T[]) {
+  const n = stringToUnitFloat(messageId);
+  return arr[Math.floor(n * arr.length)];
 }
 
-function asHTMLElement(value: unknown): HTMLElement | null {
-  if (value instanceof HTMLElement) return value;
-
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    "0" in value &&
-    (value as { 0?: unknown })[0] instanceof HTMLElement
-  ) {
-    return (value as { 0: HTMLElement })[0];
+function stringToUnitFloat(str: string) {
+  // FNV-1a 32-bit hash
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
   }
-
-  return null;
-}
-
-function injectPresetButton(root: HTMLElement): void {
-  const configRoot = root.matches("#dice-config.dice-so-nice")
-    ? root
-    : root.querySelector<HTMLElement>("#dice-config.dice-so-nice");
-  if (!configRoot) return;
-
-  if (configRoot.querySelector("[data-action='open-sf2e-dice-presets']")) {
-    return;
-  }
-
-  const header = configRoot.querySelector<HTMLElement>(".window-header");
-  if (!header) return;
-
-  const button = document.createElement("button");
-  button.classList.add("header-control", "icon", "fa-solid", "fa-dice");
-  button.dataset.action = "open-sf2e-dice-presets";
-  button.dataset.tooltip = "Open Presets Manager";
-  button.title = "Dice Presets";
-  const closeButton = header.querySelector<HTMLElement>(
-    '[data-action="close"]',
-  );
-  if (closeButton) {
-    closeButton.insertAdjacentElement("beforebegin", button);
-  } else {
-    header.append(button);
-  }
-
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    void new DicePresetManagerApp().render({ force: true });
-  });
+  return (h >>> 0) / 4294967296;
 }
 
 let diceSoNiceRollStartHook: number;
-let renderDiceConfigHook: number;
+let diceSoNiceReadyHook: number;
+let getHeaderControlsDiceConfig: number;
+let updateUserHook: number;
 
 export function registerDiceSoNiceHooks(): void {
+  updateUserHook = Hooks.on("updateUser", async (user, diff) => {
+    if (diff?.flags?.["dice-so-nice"]?.appearance) {
+      await loadDiceForUser(user);
+    }
+
+    if (diff?.flags?.[moduleId]?.[FLAG_KEY]) {
+      await loadDiceForUser(user);
+    }
+  });
+
+  diceSoNiceReadyHook = Hooks.on("diceSoNiceReady", async () => {
+    await Promise.all(game.users.contents.map((user) => loadDiceForUser(user)));
+  });
+
   diceSoNiceRollStartHook = Hooks.on(
     "diceSoNiceRollStart",
-    async (_, options) => {
-      if (options.user.id === game.user.id) {
-        const presets = Object.values(
-          game.user.getFlag(moduleId, FLAG_KEY) ?? {},
-        ).filter((x) => x.enabled);
+    (messageId, options) => {
+      const presets = Object.values(
+        (options.user.getFlag(moduleId, FLAG_KEY) as DicePresetFlags) ?? {},
+      ).filter((x) => x.enabled);
 
-        if (presets.length) {
-          const preset = randomElement(presets);
-          await applyPreset(preset);
-        }
+      if (presets.length) {
+        const preset = getElementForMessage(messageId, presets);
+        options.roll.appearance = preset.appearance;
+
+        options.roll.dice.forEach((die: Die) => {
+          const key = `d${die.faces}`;
+          if (key in preset.appearance) {
+            die.options.appearance = foundry.utils.deepClone(
+              preset.appearance[key],
+            );
+          } else {
+            die.options.appearance = foundry.utils.deepClone(
+              preset.appearance.global,
+            );
+          }
+        });
       }
-
-      await loadDiceForUser(options.user);
     },
   );
 
-  renderDiceConfigHook = Hooks.on("renderDiceConfig", (_app, element) => {
-    const root = asHTMLElement(element);
-    if (!root) return;
-    injectPresetButton(root);
-  });
+  getHeaderControlsDiceConfig = Hooks.on(
+    "getHeaderControlsDiceConfig",
+    (_, controls: foundry.applications.ApplicationHeaderControlsEntry[]) => {
+      controls.push({
+        icon: "fa-solid fa-dice",
+        label: "Presets",
+        action: "dice-preset-manager",
+        onClick: () => {
+          void new DicePresetManagerApp().render({ force: true });
+        },
+      });
+    },
+  );
 }
 
 export function unregisterDiceSoNiceHooks() {
+  Hooks.off("updateUser", updateUserHook);
+  Hooks.off("diceSoNiceReady", diceSoNiceReadyHook);
   Hooks.off("diceSoNiceRollStart", diceSoNiceRollStartHook);
-  Hooks.off("renderDiceConfig", renderDiceConfigHook);
+  Hooks.off("getHeaderControlsDiceConfig", getHeaderControlsDiceConfig);
 }

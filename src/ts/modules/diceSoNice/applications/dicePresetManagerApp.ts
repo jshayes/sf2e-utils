@@ -1,6 +1,6 @@
 import { moduleId } from "../../../constants";
 import { FLAG_KEY } from "../constants";
-import { DicePreset } from "../types";
+import { Appearance, DicePreset, DicePresetFlags } from "../types";
 import { applyPreset, loadDiceForUser } from "../utils";
 
 type DicePresetMap = Record<string, DicePreset>;
@@ -20,15 +20,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function coercePreset(value: unknown): DicePreset | null {
-  if (!isRecord(value)) return null;
+function coercePreset(value: DicePreset): DicePreset | null {
   return {
     enabled: value.enabled !== false,
     appearance: foundry.utils.deepClone(value.appearance),
   };
 }
 
-function coercePresetMap(value: unknown): DicePresetMap {
+function validateFlags(value: unknown): value is DicePresetFlags {
+  if (isRecord(value)) {
+    return true;
+  }
+  return false;
+}
+
+function coercePresetMap(value: DicePresetFlags): DicePresetMap {
   if (!isRecord(value)) return {};
 
   const map: DicePresetMap = {};
@@ -40,13 +46,10 @@ function coercePresetMap(value: unknown): DicePresetMap {
   return map;
 }
 
-function getCurrentGlobalAppearance(): unknown {
-  const appearanceFlag = game.user.getFlag(
-    "dice-so-nice",
-    "appearance",
-  ) as unknown;
+function getCurrentAppearance(): Appearance | null {
+  const appearanceFlag = game.user.getFlag("dice-so-nice", "appearance");
   if (!isRecord(appearanceFlag)) return null;
-  return foundry.utils.deepClone(appearanceFlag.global);
+  return foundry.utils.deepClone(appearanceFlag) as Appearance;
 }
 
 const DicePresetManagerAppBase =
@@ -77,7 +80,13 @@ export class DicePresetManagerApp extends DicePresetManagerAppBase {
 
   constructor() {
     super({});
-    this.#presets = coercePresetMap(game.user.getFlag(moduleId, FLAG_KEY));
+
+    const flags = game.user.getFlag(moduleId, FLAG_KEY);
+    if (!validateFlags(flags)) {
+      this.#presets = coercePresetMap({});
+    } else {
+      this.#presets = coercePresetMap(flags);
+    }
   }
 
   override async _prepareContext(
@@ -175,17 +184,17 @@ export class DicePresetManagerApp extends DicePresetManagerAppBase {
       return;
     }
 
-    const globalAppearance = getCurrentGlobalAppearance();
-    if (globalAppearance === null || globalAppearance === undefined) {
+    const appearance = getCurrentAppearance();
+    if (appearance === null || appearance === undefined) {
       ui.notifications.error(
-        "Could not read Dice So Nice global appearance from user flags.",
+        "Could not read Dice So Nice appearance from user flags.",
       );
       return;
     }
 
     this.#presets[name] = {
       enabled: true,
-      appearance: globalAppearance,
+      appearance,
     };
     this.#newPresetName = "";
     await this.#savePresets();
