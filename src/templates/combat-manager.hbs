@@ -54,7 +54,7 @@
       </div>
       <div class="combat-manager-combatants-list">
         {{#each selectedCombatants}}
-          <div class="combat-manager-combatant-row">
+          <div class="combat-manager-combatant-row" data-combatant-id="{{this.id}}">
             <div class="combat-manager-combatant-main">
               <img src="{{this.image}}" alt="" />
               <span>{{this.name}}</span>

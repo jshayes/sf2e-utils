@@ -105,6 +105,8 @@ export class CombatManagerApp extends CombatManagerAppBase {
   #combatName = "";
   #combats: CombatEntry[];
   #selectedCombatIndex: number | null = null;
+  #hoveredCombatantTokenId: string | null = null;
+  #hoverPreviewPreviousTokenIds: string[] | null = null;
   #controlTokenHookId: number;
   #sceneSwitchHookId: number;
   #sceneId: string | null = null;
@@ -124,6 +126,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
   override async close(
     options: fa.ApplicationClosingOptions = {},
   ): Promise<this> {
+    this.#clearCombatantHover();
     Hooks.off("controlToken", this.#controlTokenHookId);
     Hooks.off("canvasReady", this.#sceneSwitchHookId);
     return super.close(options);
@@ -206,7 +209,9 @@ export class CombatManagerApp extends CombatManagerAppBase {
     }
 
     for (const roundInput of Array.from(
-      root.querySelectorAll<HTMLInputElement>("[data-action='set-combatant-round']"),
+      root.querySelectorAll<HTMLInputElement>(
+        "[data-action='set-combatant-round']",
+      ),
     )) {
       roundInput.addEventListener("change", () => {
         const tokenId = String(roundInput.dataset.id ?? "").trim();
@@ -214,6 +219,23 @@ export class CombatManagerApp extends CombatManagerAppBase {
         const parsed = Number.parseInt(roundInput.value, 10);
         const round = Number.isFinite(parsed) ? parsed : 0;
         void this.#onSetCombatantRound(tokenId, round);
+      });
+    }
+
+    for (const combatantRow of Array.from(
+      root.querySelectorAll<HTMLElement>("[data-combatant-id]"),
+    )) {
+      combatantRow.addEventListener("mouseenter", () => {
+        const tokenId = String(combatantRow.dataset.combatantId ?? "").trim();
+        if (!tokenId) return;
+        this.#setCombatantHover(tokenId, true);
+      });
+      combatantRow.addEventListener("mouseleave", () => {
+        const tokenId = String(combatantRow.dataset.combatantId ?? "").trim();
+        if (!tokenId) return;
+        if (this.#hoveredCombatantTokenId === tokenId) {
+          this.#setCombatantHover(tokenId, false);
+        }
       });
     }
 
@@ -381,7 +403,10 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const controlledTokenIds = getControlledTokenIds();
     if (controlledTokenIds.length === 0) return;
 
-    selectedCombat.combatants = controlledTokenIds.map((id) => ({ id, round: 0 }));
+    selectedCombat.combatants = controlledTokenIds.map((id) => ({
+      id,
+      round: 0,
+    }));
     await this.#saveCombatsToScene();
     await this.render();
   }
@@ -444,6 +469,12 @@ export class CombatManagerApp extends CombatManagerAppBase {
     return null;
   }
 
+  #getCurrentlyControlledTokenIds(): string[] {
+    return (canvas?.tokens?.controlled ?? [])
+      .map((token) => token.id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
+  }
+
   #releaseAllTokens(): void {
     canvas?.tokens?.releaseAll();
   }
@@ -454,6 +485,52 @@ export class CombatManagerApp extends CombatManagerAppBase {
       const token = this.#getPlaceableTokenById(combatant.id);
       token?.control({ releaseOthers: false });
     }
+  }
+
+  #setCombatantHover(tokenId: string, hover: boolean): void {
+    const token = this.#getPlaceableTokenById(tokenId);
+    if (!token) return;
+
+    if (hover) {
+      if (
+        this.#hoveredCombatantTokenId &&
+        this.#hoveredCombatantTokenId !== tokenId
+      ) {
+        this.#clearCombatantHover();
+      }
+      if (this.#hoverPreviewPreviousTokenIds === null) {
+        this.#hoverPreviewPreviousTokenIds = this.#getCurrentlyControlledTokenIds();
+      }
+      token.control({ releaseOthers: true });
+      this.#hoveredCombatantTokenId = tokenId;
+      return;
+    }
+
+    token.release();
+    this.#restoreHoverPreviewSelection();
+    if (this.#hoveredCombatantTokenId === tokenId) {
+      this.#hoveredCombatantTokenId = null;
+    }
+  }
+
+  #restoreHoverPreviewSelection(): void {
+    if (!this.#hoverPreviewPreviousTokenIds) return;
+    canvas?.tokens?.releaseAll();
+    for (const tokenId of this.#hoverPreviewPreviousTokenIds) {
+      const previousToken = this.#getPlaceableTokenById(tokenId);
+      previousToken?.control({ releaseOthers: false });
+    }
+    this.#hoverPreviewPreviousTokenIds = null;
+  }
+
+  #clearCombatantHover(): void {
+    if (!this.#hoveredCombatantTokenId) return;
+    const token = this.#getPlaceableTokenById(this.#hoveredCombatantTokenId);
+    if (token) {
+      token.release();
+    }
+    this.#restoreHoverPreviewSelection();
+    this.#hoveredCombatantTokenId = null;
   }
 
   #buildCombatantRows(
