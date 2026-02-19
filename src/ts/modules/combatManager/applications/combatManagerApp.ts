@@ -49,6 +49,12 @@ function getControlledTokenIds(): string[] {
     .filter((id): id is string => typeof id === "string" && id.length > 0);
 }
 
+function parseInteger(value: unknown, fallback = 0): number {
+  const text = String(value ?? "").trim();
+  if (!/^[+-]?\d+$/.test(text)) return fallback;
+  return Number.parseInt(text, 10);
+}
+
 const CombatManagerAppBase = foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2,
 );
@@ -142,6 +148,18 @@ export class CombatManagerApp extends CombatManagerAppBase {
       addButton.addEventListener("click", () => void this.#onAddCombat());
     }
 
+    for (const deleteButton of Array.from(
+      root.querySelectorAll<HTMLButtonElement>(
+        "button[data-action='delete-combat']",
+      ),
+    )) {
+      deleteButton.addEventListener("click", () => {
+        const index = parseInteger(deleteButton.dataset.index, -1);
+        if (index < 0) return;
+        void this.#onDeleteCombat(index);
+      });
+    }
+
     this.#updateAddButtonState();
   }
 
@@ -196,6 +214,13 @@ export class CombatManagerApp extends CombatManagerAppBase {
     });
 
     this.#combatName = "";
+    await this.#saveCombatsToScene();
+    await this.render();
+  }
+
+  async #onDeleteCombat(index: number): Promise<void> {
+    if (index < 0 || index >= this.#combats.length) return;
+    this.#combats.splice(index, 1);
     await this.#saveCombatsToScene();
     await this.render();
   }

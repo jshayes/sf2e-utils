@@ -16,7 +16,18 @@
       {{#each combats}}
         <div class="combat-manager-row">
           <span class="combat-manager-name">{{this.name}}</span>
-          <span class="combat-manager-count">{{this.combatantCount}} combatants</span>
+          <div class="combat-manager-controls">
+            <span class="combat-manager-count">{{this.combatantCount}} combatants</span>
+            <button
+              type="button"
+              class="combat-manager-icon-button"
+              data-action="delete-combat"
+              data-index="{{@index}}"
+              aria-label="Delete combat"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
         </div>
       {{/each}}
     {{else}}
