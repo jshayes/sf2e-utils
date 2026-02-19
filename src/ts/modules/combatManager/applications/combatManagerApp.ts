@@ -412,9 +412,12 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const controlledTokenIds = getControlledTokenIds();
     if (controlledTokenIds.length === 0) return;
 
+    const previousRounds = new Map(
+      selectedCombat.combatants.map((combatant) => [combatant.id, combatant.round]),
+    );
     selectedCombat.combatants = controlledTokenIds.map((id) => ({
       id,
-      round: 0,
+      round: previousRounds.get(id) ?? 0,
     }));
     await this.#saveCombatsToScene();
     await this.render();
