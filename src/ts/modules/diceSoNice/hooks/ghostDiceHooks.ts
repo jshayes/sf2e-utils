@@ -61,6 +61,19 @@ export function registerGhostDiceHooks(): void {
       }
     }
 
+    const realUser = options.user ?? game.user;
+    options.user = new Proxy(realUser, {
+      get(target, prop, receiver) {
+        if (prop === "getFlag") {
+          return (scope: string, key: string) => {
+            if (scope === "dice-so-nice" && key === "sfxList") return [];
+            return target.getFlag(scope, key);
+          };
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+
     options.roll.ghost = newGhost;
   });
 }
