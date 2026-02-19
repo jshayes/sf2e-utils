@@ -1,5 +1,6 @@
 @use "./numberTracker";
 @use "./dicePresetManager";
+@use "./combatManager";
 
 span.inline-check {
   background: var(--content-link-background);

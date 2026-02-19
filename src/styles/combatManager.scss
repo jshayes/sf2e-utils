@@ -1,0 +1,39 @@
+.combat-manager .combat-manager-create {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.combat-manager .combat-manager-create input {
+  flex: 1;
+}
+
+.combat-manager .combat-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.combat-manager .combat-manager-row {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.combat-manager .combat-manager-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combat-manager .combat-manager-count {
+  color: var(--color-text-dark-secondary);
+  flex-shrink: 0;
+  font-size: var(--font-size-12);
+}
+
+.combat-manager .combat-manager-empty {
+  color: var(--color-text-dark-secondary);
+  margin: 0;
+}

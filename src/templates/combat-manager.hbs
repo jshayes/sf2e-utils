@@ -1,0 +1,26 @@
+<div class="combat-manager-app">
+  <div class="combat-manager-create">
+    <input
+      type="text"
+      data-combat-name
+      placeholder="Combat name"
+      value="{{combatName}}"
+    />
+    <button type="button" data-action="add-combat" {{#unless canAddCombat}}disabled{{/unless}}>
+      Add Combat
+    </button>
+  </div>
+
+  <div class="combat-manager-list">
+    {{#if hasCombats}}
+      {{#each combats}}
+        <div class="combat-manager-row">
+          <span class="combat-manager-name">{{this.name}}</span>
+          <span class="combat-manager-count">{{this.combatantCount}} combatants</span>
+        </div>
+      {{/each}}
+    {{else}}
+      <p class="combat-manager-empty">No combats saved for this scene.</p>
+    {{/if}}
+  </div>
+</div>

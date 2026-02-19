@@ -1,4 +1,9 @@
 import {
+  combatManagerMacros,
+  registerCombatManagerModule,
+  unregisterCombatManagerModule,
+} from "./combatManager";
+import {
   registerDiceSoNiceModule,
   unregisterDiceSoNiceModule,
 } from "./diceSoNice";
@@ -14,10 +19,12 @@ import {
 } from "./rollResolver";
 
 export const moduleMacros = {
+  combatManager: combatManagerMacros,
   numberTracker: numberTrackerMacros,
 };
 
 export function registerModules() {
+  registerCombatManagerModule();
   registerDiceSoNiceModule();
   registerHideDeadModule();
   registerJournalEditorEnhancementsModule();
@@ -25,6 +32,7 @@ export function registerModules() {
 }
 
 export function unregisterModules() {
+  unregisterCombatManagerModule();
   unregisterDiceSoNiceModule();
   unregisterHideDeadModule();
   unregisterJournalEditorEnhancementsModule();
