@@ -488,7 +488,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     this.#combatName = "";
     this.#selectedCombatIndex = null;
     this.#combats = this.#readCombatsFromScene();
-    await this.render();
+    await this.#renderIfConnected();
   }
 
   async #onSceneUpdated(scene: foundry.documents.Scene): Promise<void> {
@@ -501,6 +501,14 @@ export class CombatManagerApp extends CombatManagerAppBase {
     ) {
       this.#selectedCombatIndex = null;
     }
+    await this.#renderIfConnected();
+  }
+
+  async #renderIfConnected(): Promise<void> {
+    const root = this.element;
+    if (!(root instanceof HTMLElement)) return;
+    if (!root.isConnected) return;
+    if (!(root.parentElement instanceof HTMLElement)) return;
     await this.render();
   }
 
