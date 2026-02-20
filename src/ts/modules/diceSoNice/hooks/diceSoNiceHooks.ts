@@ -36,7 +36,11 @@ export function registerDiceSoNiceHooks(): void {
   });
 
   diceSoNiceReadyHook = Hooks.on("diceSoNiceReady", async () => {
-    await Promise.all(game.users.contents.map((user) => loadDiceForUser(user)));
+    setTimeout(async () => {
+      await Promise.all(
+        game.users.contents.map((user) => loadDiceForUser(user)),
+      );
+    }, 0);
   });
 
   diceSoNiceRollStartHook = Hooks.on(
