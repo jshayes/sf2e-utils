@@ -1,4 +1,5 @@
 import { moduleId } from "../../../constants";
+import { HooksManager } from "../../../helpers/hooks";
 import { DicePresetManagerApp } from "../applications/dicePresetManagerApp";
 import { FLAG_KEY } from "../constants";
 import { DicePresetFlags, Die } from "../types";
@@ -19,13 +20,10 @@ function stringToUnitFloat(str: string) {
   return (h >>> 0) / 4294967296;
 }
 
-let diceSoNiceRollStartHook: number;
-let diceSoNiceReadyHook: number;
-let getHeaderControlsDiceConfig: number;
-let updateUserHook: number;
+const hooks = new HooksManager();
 
 export function registerDiceSoNiceHooks(): void {
-  updateUserHook = Hooks.on("updateUser", async (user, diff) => {
+  hooks.on("updateUser", async (user, diff) => {
     if (diff?.flags?.["dice-so-nice"]?.appearance) {
       await loadDiceForUser(user);
     }
@@ -35,7 +33,7 @@ export function registerDiceSoNiceHooks(): void {
     }
   });
 
-  diceSoNiceReadyHook = Hooks.on("diceSoNiceReady", async () => {
+  hooks.on("diceSoNiceReady", async () => {
     setTimeout(async () => {
       console.log("loading dice");
       await Promise.all(
@@ -44,34 +42,31 @@ export function registerDiceSoNiceHooks(): void {
     }, 0);
   });
 
-  diceSoNiceRollStartHook = Hooks.on(
-    "diceSoNiceRollStart",
-    (messageId, options) => {
-      const presets = Object.values(
-        (options.user.getFlag(moduleId, FLAG_KEY) as DicePresetFlags) ?? {},
-      ).filter((x) => x.enabled);
+  hooks.on("diceSoNiceRollStart", (messageId, options) => {
+    const presets = Object.values(
+      (options.user.getFlag(moduleId, FLAG_KEY) as DicePresetFlags) ?? {},
+    ).filter((x) => x.enabled);
 
-      if (presets.length) {
-        const preset = getElementForMessage(messageId, presets);
-        options.roll.appearance = preset.appearance;
+    if (presets.length) {
+      const preset = getElementForMessage(messageId, presets);
+      options.roll.appearance = preset.appearance;
 
-        options.roll.dice.forEach((die: Die) => {
-          const key = `d${die.faces}`;
-          if (key in preset.appearance) {
-            die.options.appearance = foundry.utils.deepClone(
-              preset.appearance[key],
-            );
-          } else {
-            die.options.appearance = foundry.utils.deepClone(
-              preset.appearance.global,
-            );
-          }
-        });
-      }
-    },
-  );
+      options.roll.dice.forEach((die: Die) => {
+        const key = `d${die.faces}`;
+        if (key in preset.appearance) {
+          die.options.appearance = foundry.utils.deepClone(
+            preset.appearance[key],
+          );
+        } else {
+          die.options.appearance = foundry.utils.deepClone(
+            preset.appearance.global,
+          );
+        }
+      });
+    }
+  });
 
-  getHeaderControlsDiceConfig = Hooks.on(
+  hooks.on(
     "getHeaderControlsDiceConfig",
     (_, controls: foundry.applications.ApplicationHeaderControlsEntry[]) => {
       controls.push({
@@ -87,8 +82,5 @@ export function registerDiceSoNiceHooks(): void {
 }
 
 export function unregisterDiceSoNiceHooks() {
-  Hooks.off("updateUser", updateUserHook);
-  Hooks.off("diceSoNiceReady", diceSoNiceReadyHook);
-  Hooks.off("diceSoNiceRollStart", diceSoNiceRollStartHook);
-  Hooks.off("getHeaderControlsDiceConfig", getHeaderControlsDiceConfig);
+  hooks.off();
 }

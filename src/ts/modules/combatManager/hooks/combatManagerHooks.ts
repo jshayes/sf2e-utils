@@ -6,6 +6,7 @@ import {
   setDiceRollsToDefault,
 } from "../../../macros/toggleDice";
 import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
+import { HooksManager } from "../../../helpers/hooks";
 
 type CombatantEntry = {
   id: string;
@@ -18,6 +19,8 @@ type CombatEntry = {
   combatants: CombatantEntry[];
   combatId: string | null;
 };
+
+const hooks = new HooksManager();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -118,82 +121,72 @@ async function addPendingCombatantsAndRoll(
   return createdIds.length;
 }
 
-let preUpdateCombatHook: number;
 const allowNextRoundAdvance = new Set<string>();
 const processingRoundAdvance = new Set<string>();
-const processingTurnSkips = new Set<string>();
-
-// Keep references so the alternate implementation remains in this file for comparison.
-void getPendingCombatantsForRound;
-void addPendingCombatantsAndRoll;
 
 export function registerCombatManagerHooks(): void {
-  preUpdateCombatHook = Hooks.on(
-    "preUpdateCombat",
-    (combat, changed: Record<string, unknown>) => {
-      const combatDoc = combat as foundry.documents.Combat;
+  hooks.on("preUpdateCombat", (combat, changed: Record<string, unknown>) => {
+    const combatDoc = combat as foundry.documents.Combat;
 
-      if (!game.user.isGM) return;
+    if (!game.user.isGM) return;
 
-      if (allowNextRoundAdvance.has(combatDoc.id)) {
-        allowNextRoundAdvance.delete(combatDoc.id);
-        return;
-      }
+    if (allowNextRoundAdvance.has(combatDoc.id)) {
+      allowNextRoundAdvance.delete(combatDoc.id);
+      return;
+    }
 
-      const currentRound = combatDoc.round;
-      const nextRoundValue = changed.round as number | null | undefined;
-      const targetRound = Number(nextRoundValue);
-      if (!Number.isFinite(targetRound)) return;
-      if (targetRound <= currentRound) return;
+    const currentRound = combatDoc.round;
+    const nextRoundValue = changed.round as number | null | undefined;
+    const targetRound = Number(nextRoundValue);
+    if (!Number.isFinite(targetRound)) return;
+    if (targetRound <= currentRound) return;
 
-      const scene = combatDoc.scene;
-      if (!scene) return;
-      const currentScene = scene;
+    const scene = combatDoc.scene;
+    if (!scene) return;
+    const currentScene = scene;
 
-      const config = getSceneCombats(currentScene).find(
-        (entry) => entry.combatId === combatDoc.id,
-      );
-      if (config === undefined) return;
+    const config = getSceneCombats(currentScene).find(
+      (entry) => entry.combatId === combatDoc.id,
+    );
+    if (config === undefined) return;
 
-      const pending = getPendingCombatantsForRound(
-        combatDoc,
-        config,
-        targetRound,
-      );
-      if (!pending.length) return;
+    const pending = getPendingCombatantsForRound(
+      combatDoc,
+      config,
+      targetRound,
+    );
+    if (!pending.length) return;
 
-      if (processingRoundAdvance.has(combatDoc.id)) return false;
-      processingRoundAdvance.add(combatDoc.id);
+    if (processingRoundAdvance.has(combatDoc.id)) return false;
+    processingRoundAdvance.add(combatDoc.id);
 
-      void (async () => {
-        try {
-          const addedCount = await addPendingCombatantsAndRoll(
-            combatDoc,
-            pending,
+    void (async () => {
+      try {
+        const addedCount = await addPendingCombatantsAndRoll(
+          combatDoc,
+          pending,
+        );
+        if (addedCount > 0) {
+          ui.notifications.info(
+            `Added ${addedCount} delayed combatant(s) to "${config.name}" for round ${targetRound}.`,
           );
-          if (addedCount > 0) {
-            ui.notifications.info(
-              `Added ${addedCount} delayed combatant(s) to "${config.name}" for round ${targetRound}.`,
-            );
-          }
-
-          // Allow this one follow-up advance to proceed without interception.
-          allowNextRoundAdvance.add(combatDoc.id);
-          await combatDoc.nextRound();
-        } finally {
-          processingRoundAdvance.delete(combatDoc.id);
         }
-      })();
 
-      // Prevent the current round advance; we'll re-run it after joiners are added.
-      return false;
-    },
-  );
+        // Allow this one follow-up advance to proceed without interception.
+        allowNextRoundAdvance.add(combatDoc.id);
+        await combatDoc.nextRound();
+      } finally {
+        processingRoundAdvance.delete(combatDoc.id);
+      }
+    })();
+
+    // Prevent the current round advance; we'll re-run it after joiners are added.
+    return false;
+  });
 }
 
 export function unregisterCombatManagerHooks(): void {
-  Hooks.off("preUpdateCombat", preUpdateCombatHook);
+  hooks.off();
   allowNextRoundAdvance.clear();
   processingRoundAdvance.clear();
-  processingTurnSkips.clear();
 }

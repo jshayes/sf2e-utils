@@ -1,6 +1,8 @@
-let getHeaderControlsRollResolverHook: number;
+import { HooksManager } from "../../../helpers/hooks";
+
+const hooks = new HooksManager();
 export function registerRollResolverHooks() {
-  getHeaderControlsRollResolverHook = Hooks.on(
+  hooks.on(
     "getHeaderControlsRollResolver",
     (_, controls: foundry.applications.ApplicationHeaderControlsEntry[]) => {
       controls.push({
@@ -22,5 +24,5 @@ export function registerRollResolverHooks() {
 }
 
 export function unregisterRollResolverHooks() {
-  Hooks.off("getHeaderControlsRollResolver", getHeaderControlsRollResolverHook);
+  hooks.off();
 }

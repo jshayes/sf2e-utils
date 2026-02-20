@@ -3,6 +3,7 @@ import {
   getSkillOptions,
   skillLabelToSlug,
 } from "../../../helpers";
+import { HooksManager } from "../../../helpers/hooks";
 
 const SHORTCUT_HOOK_ID = "sf2e-utils.insertSkillCheckShortcut";
 
@@ -173,62 +174,54 @@ function isInsertSkillCheckShortcut(event: KeyboardEvent): boolean {
   return event.key?.toLowerCase() === "g";
 }
 
-let getProseMirrorMenuItemsHook: number;
-let createProseMirrorEditorHook: number;
+const hooks = new HooksManager();
 export function registerJournalEditorEnhancementsHooks(): void {
-  getProseMirrorMenuItemsHook = Hooks.on(
-    "getProseMirrorMenuItems",
-    (menu, items) => {
-      const targetItems = items as Array<{
-        action: string;
-        title: string;
-        icon: string;
-        scope: string;
-        cmd: () => boolean;
-      }>;
+  hooks.on("getProseMirrorMenuItems", (menu, items) => {
+    const targetItems = items as Array<{
+      action: string;
+      title: string;
+      icon: string;
+      scope: string;
+      cmd: () => boolean;
+    }>;
 
-      targetItems.push({
-        action: "insertSkillCheck",
-        title: "Insert Skill Check",
-        icon: '<i class="fa-solid fa-dice-d20"></i>',
-        scope: "text",
-        cmd: () => {
-          void openSkillCheckDialog(menu as ProseMirrorMenuLike);
+    targetItems.push({
+      action: "insertSkillCheck",
+      title: "Insert Skill Check",
+      icon: '<i class="fa-solid fa-dice-d20"></i>',
+      scope: "text",
+      cmd: () => {
+        void openSkillCheckDialog(menu as ProseMirrorMenuLike);
+        return true;
+      },
+    });
+  });
+
+  hooks.on("createProseMirrorEditor", (_uuid, plugins) => {
+    const pluginCtor = (
+      globalThis as unknown as {
+        ProseMirror?: { Plugin?: new (config: unknown) => unknown };
+      }
+    ).ProseMirror?.Plugin;
+
+    if (!pluginCtor) return;
+
+    (plugins as Record<string, unknown>)[SHORTCUT_HOOK_ID] = new pluginCtor({
+      props: {
+        handleKeyDown(
+          view: ProseMirrorViewLike,
+          event: KeyboardEvent,
+        ): boolean {
+          if (!isInsertSkillCheckShortcut(event)) return false;
+          event.preventDefault();
+          void openSkillCheckDialog({ view });
           return true;
         },
-      });
-    },
-  );
-
-  createProseMirrorEditorHook = Hooks.on(
-    "createProseMirrorEditor",
-    (_uuid, plugins) => {
-      const pluginCtor = (
-        globalThis as unknown as {
-          ProseMirror?: { Plugin?: new (config: unknown) => unknown };
-        }
-      ).ProseMirror?.Plugin;
-
-      if (!pluginCtor) return;
-
-      (plugins as Record<string, unknown>)[SHORTCUT_HOOK_ID] = new pluginCtor({
-        props: {
-          handleKeyDown(
-            view: ProseMirrorViewLike,
-            event: KeyboardEvent,
-          ): boolean {
-            if (!isInsertSkillCheckShortcut(event)) return false;
-            event.preventDefault();
-            void openSkillCheckDialog({ view });
-            return true;
-          },
-        },
-      });
-    },
-  );
+      },
+    });
+  });
 }
 
 export function unregisterJournalEditorEnhancementsHooks(): void {
-  Hooks.off("getProseMirrorMenuItems", getProseMirrorMenuItemsHook);
-  Hooks.off("createProseMirrorEditor", createProseMirrorEditorHook);
+  hooks.off();
 }
