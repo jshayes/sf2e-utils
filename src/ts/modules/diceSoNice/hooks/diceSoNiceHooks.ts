@@ -37,6 +37,7 @@ export function registerDiceSoNiceHooks(): void {
 
   diceSoNiceReadyHook = Hooks.on("diceSoNiceReady", async () => {
     setTimeout(async () => {
+      console.log("loading dice");
       await Promise.all(
         game.users.contents.map((user) => loadDiceForUser(user)),
       );

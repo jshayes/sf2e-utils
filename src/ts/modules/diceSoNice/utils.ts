@@ -9,6 +9,12 @@ export async function loadDiceForAppearance(appearance: Appearance) {
   const presets = [];
   for (let scope in appearance) {
     if (appearance.hasOwnProperty(scope)) {
+      if (
+        appearance[scope].system &&
+        !diceFactory.systems.has(appearance[scope].system)
+      ) {
+        ui.notifications.error("TELL JUSTIN THAT HE FUCKED UP!");
+      }
       if (scope != "global") {
         const preset = diceFactory.getPresetBySystem(
           scope,
