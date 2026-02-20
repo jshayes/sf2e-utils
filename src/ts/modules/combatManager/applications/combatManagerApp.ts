@@ -1,5 +1,6 @@
 import { moduleId } from "../../../constants";
 import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
+import { createCombat } from "../macros/createCombat";
 
 type CombatantEntry = {
   id: string;
@@ -291,6 +292,19 @@ export class CombatManagerApp extends CombatManagerAppBase {
       });
     }
 
+    for (const createButton of Array.from(
+      root.querySelectorAll<HTMLButtonElement>(
+        "button[data-action='create-combat']",
+      ),
+    )) {
+      createButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const index = parseInteger(createButton.dataset.index, -1);
+        if (index < 0) return;
+        void this.#onCreateCombat(index);
+      });
+    }
+
     this.#updateButtonStates();
   }
 
@@ -384,6 +398,12 @@ export class CombatManagerApp extends CombatManagerAppBase {
     }
     await this.#saveCombatsToScene();
     await this.render();
+  }
+
+  async #onCreateCombat(index: number): Promise<void> {
+    const combat = this.#combats[index];
+    if (!combat) return;
+    await createCombat({ name: combat.name });
   }
 
   async #onRenameSelectedCombat(nextName: string): Promise<void> {
