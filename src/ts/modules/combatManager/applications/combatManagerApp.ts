@@ -1,4 +1,5 @@
 import { moduleId } from "../../../constants";
+import { HooksManager } from "../../../helpers/hooks";
 import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
 import { createCombat } from "../macros/createCombat";
 
@@ -49,8 +50,7 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
     typeof roundValue === "number" && Number.isFinite(roundValue)
       ? Math.max(1, Math.floor(roundValue))
       : 1;
-  const enabled =
-    typeof value.enabled === "boolean" ? value.enabled : true;
+  const enabled = typeof value.enabled === "boolean" ? value.enabled : true;
   return { id, round, enabled };
 }
 
@@ -112,10 +112,8 @@ export class CombatManagerApp extends CombatManagerAppBase {
   #selectedCombatIndex: number | null = null;
   #hoveredCombatantTokenId: string | null = null;
   #hoverPreviewPreviousTokenIds: string[] | null = null;
-  #controlTokenHookId: number;
-  #sceneSwitchHookId: number;
-  #updateSceneHookId: number;
   #sceneId: string | null = null;
+  #hooks: HooksManager;
 
   constructor(options: { selectCombatName?: string } = {}) {
     super({});
@@ -126,13 +124,14 @@ export class CombatManagerApp extends CombatManagerAppBase {
       this.#selectedCombatIndex = index >= 0 ? index : null;
     }
     this.#sceneId = game.scenes.current?.id ?? null;
-    this.#controlTokenHookId = Hooks.on("controlToken", () => {
+    this.#hooks = new HooksManager();
+    this.#hooks.on("controlToken", () => {
       this.#updateButtonStates();
     });
-    this.#sceneSwitchHookId = Hooks.on("canvasReady", () => {
+    this.#hooks.on("canvasReady", () => {
       void this.#onSceneSwitch();
     });
-    this.#updateSceneHookId = Hooks.on("updateScene", (scene) => {
+    this.#hooks.on("updateScene", (scene) => {
       void this.#onSceneUpdated(scene);
     });
   }
@@ -141,9 +140,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     options: fa.ApplicationClosingOptions = {},
   ): Promise<this> {
     this.#clearCombatantHover();
-    Hooks.off("controlToken", this.#controlTokenHookId);
-    Hooks.off("canvasReady", this.#sceneSwitchHookId);
-    Hooks.off("updateScene", this.#updateSceneHookId);
+    this.#hooks.off();
     return super.close(options);
   }
 
@@ -215,8 +212,9 @@ export class CombatManagerApp extends CombatManagerAppBase {
       updateButton.addEventListener("click", () => void this.#onUpdateCombat());
     }
     if (selectCombatantsButton instanceof HTMLButtonElement) {
-      selectCombatantsButton.addEventListener("click", () =>
-        void this.#onSelectCombatants(),
+      selectCombatantsButton.addEventListener(
+        "click",
+        () => void this.#onSelectCombatants(),
       );
     }
 
@@ -607,7 +605,8 @@ export class CombatManagerApp extends CombatManagerAppBase {
         this.#clearCombatantHover();
       }
       if (this.#hoverPreviewPreviousTokenIds === null) {
-        this.#hoverPreviewPreviousTokenIds = this.#getCurrentlyControlledTokenIds();
+        this.#hoverPreviewPreviousTokenIds =
+          this.#getCurrentlyControlledTokenIds();
       }
       token.control({ releaseOthers: true });
       this.#hoveredCombatantTokenId = tokenId;
@@ -641,9 +640,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     this.#hoveredCombatantTokenId = null;
   }
 
-  #buildCombatantRows(
-    combat: CombatEntry,
-  ): Array<{
+  #buildCombatantRows(combat: CombatEntry): Array<{
     id: string;
     name: string;
     image: string;

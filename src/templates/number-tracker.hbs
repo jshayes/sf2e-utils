@@ -3,28 +3,25 @@
     {{#each trackers}}
       <div class="tracker-entry" data-tracker-entry data-index="{{@index}}">
         <div class="tracker-row">
-          <label class="tracker-label">Name</label>
+          <button
+            type="button"
+            class="tracker-icon-button tracker-drag-handle"
+            data-action="drag-handle"
+            data-index="{{@index}}"
+            draggable="true"
+            aria-label="Reorder tracker"
+          >
+            <i class="fa-solid fa-grip-lines"></i>
+          </button>
           <div class="tracker-fields">
             <input
               type="text"
               name="trackerName"
-              placeholder="e.g. Victory Points"
+              placeholder="Victory Points"
               value="{{this.name}}"
               data-tracker-input
             />
-            <button
-              type="button"
-              class="tracker-icon-button"
-              data-action="remove-tracker"
-              data-index="{{@index}}"
-              aria-label="Remove tracker"
-            >
-              <i class="fa-solid fa-trash"></i>
-            </button>
           </div>
-        </div>
-        <div class="tracker-row">
-          <label class="tracker-label">Value</label>
           <div class="tracker-fields">
             <button
               type="button"
@@ -38,6 +35,7 @@
             </button>
             <input
               type="number"
+              class="tracker-number"
               name="trackerValue"
               step="1"
               value="{{this.value}}"
@@ -52,6 +50,15 @@
               aria-label="Increase value"
             >
               <i class="fa-solid fa-plus"></i>
+            </button>
+            <button
+              type="button"
+              class="tracker-icon-button tracker-remove-button"
+              data-action="remove-tracker"
+              data-index="{{@index}}"
+              aria-label="Remove tracker"
+            >
+              <i class="fa-solid fa-trash"></i>
             </button>
           </div>
         </div>

@@ -46,7 +46,7 @@ export class NumberTrackerApp extends NumberTrackerAppBase {
   static override DEFAULT_OPTIONS = {
     classes: [moduleId, "number-tracker"],
     tag: "section",
-    position: { width: 300 },
+    position: { width: 400 },
     window: { resizable: false },
   };
 
@@ -134,6 +134,32 @@ export class NumberTrackerApp extends NumberTrackerAppBase {
     )) {
       input.addEventListener("change", () => void this.#onInputsChanged());
     }
+
+    for (const handle of Array.from(
+      root.querySelectorAll<HTMLElement>("[data-action='drag-handle']"),
+    )) {
+      handle.addEventListener("dragstart", (event) =>
+        this.#onDragStart(event, handle),
+      );
+      handle.addEventListener("dragend", () => {
+        this.#clearDragOverClasses();
+      });
+    }
+
+    for (const entry of Array.from(
+      root.querySelectorAll<HTMLElement>("[data-tracker-entry]"),
+    )) {
+      entry.addEventListener("dragover", (event) =>
+        this.#onDragOver(event, entry),
+      );
+      entry.addEventListener("dragleave", () => {
+        entry.classList.remove("is-drag-over");
+      });
+      entry.addEventListener(
+        "drop",
+        (event) => void this.#onDrop(event, entry),
+      );
+    }
   }
 
   async #onAddTracker(): Promise<void> {
@@ -165,6 +191,53 @@ export class NumberTrackerApp extends NumberTrackerAppBase {
   async #onInputsChanged(): Promise<void> {
     this.#syncFromDom();
     await this.#saveState();
+  }
+
+  #onDragStart(event: DragEvent, handle: HTMLElement): void {
+    const index = parseInteger(handle.dataset.index, -1);
+    if (index < 0) return;
+
+    const transfer = event.dataTransfer;
+    if (!transfer) return;
+    transfer.effectAllowed = "move";
+    transfer.setData("text/plain", String(index));
+  }
+
+  #onDragOver(event: DragEvent, entry: HTMLElement): void {
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = "move";
+    this.#clearDragOverClasses();
+    entry.classList.add("is-drag-over");
+  }
+
+  async #onDrop(event: DragEvent, entry: HTMLElement): Promise<void> {
+    event.preventDefault();
+    const transfer = event.dataTransfer;
+    if (!transfer) return;
+
+    const fromIndex = parseInteger(transfer.getData("text/plain"), -1);
+    const toIndex = parseInteger(entry.dataset.index, -1);
+    this.#clearDragOverClasses();
+
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return;
+
+    this.#syncFromDom();
+    const [moved] = this.#trackers.splice(fromIndex, 1);
+    if (!moved) return;
+    this.#trackers.splice(toIndex, 0, moved);
+
+    await this.#saveState();
+    await this.render();
+  }
+
+  #clearDragOverClasses(): void {
+    const root = this.element;
+    if (!(root instanceof HTMLElement)) return;
+    for (const entry of Array.from(
+      root.querySelectorAll<HTMLElement>("[data-tracker-entry].is-drag-over"),
+    )) {
+      entry.classList.remove("is-drag-over");
+    }
   }
 
   #syncFromDom(): void {

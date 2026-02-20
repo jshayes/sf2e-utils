@@ -1,12 +1,18 @@
 .number-tracker .tracker-entry {
+  border: 1px solid transparent;
+  border-radius: 4px;
   margin-bottom: 0.75rem;
+}
+
+.number-tracker .tracker-entry.is-drag-over {
+  background: var(--color-bg-option);
+  border-color: var(--color-border-highlight);
 }
 
 .number-tracker .tracker-row {
   align-items: center;
   display: flex;
   gap: 0.5rem;
-  margin-bottom: 0.5rem;
 }
 
 .number-tracker .tracker-label {
@@ -30,4 +36,20 @@
   display: inline-flex;
   justify-content: center;
   min-width: 2rem;
+}
+
+.number-tracker .tracker-drag-handle {
+  cursor: grab;
+}
+
+.number-tracker .tracker-drag-handle:active {
+  cursor: grabbing;
+}
+
+.number-tracker .tracker-remove-button {
+  margin-left: 1rem;
+}
+
+.number-tracker .tracker-number {
+  text-align: center;
 }
