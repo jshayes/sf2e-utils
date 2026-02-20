@@ -47,8 +47,8 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
   const roundValue = value.round;
   const round =
     typeof roundValue === "number" && Number.isFinite(roundValue)
-      ? Math.max(0, Math.floor(roundValue))
-      : 0;
+      ? Math.max(1, Math.floor(roundValue))
+      : 1;
   const enabled =
     typeof value.enabled === "boolean" ? value.enabled : true;
   return { id, round, enabled };
@@ -378,7 +378,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
       name,
       combatants: controlledTokenIds.map((id) => ({
         id,
-        round: 0,
+        round: 1,
         enabled: true,
       })),
       combatId: null,
@@ -470,7 +470,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     );
     selectedCombat.combatants = controlledTokenIds.map((id) => ({
       id,
-      round: previousRounds.get(id)?.round ?? 0,
+      round: previousRounds.get(id)?.round ?? 1,
       enabled: previousRounds.get(id)?.enabled ?? true,
     }));
     await this.#saveCombatsToScene();
@@ -484,7 +484,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const combatant = selectedCombat.combatants.find((x) => x.id === tokenId);
     if (!combatant) return;
 
-    combatant.round = Math.max(0, Math.floor(round));
+    combatant.round = Math.max(1, Math.floor(round));
     await this.#saveCombatsToScene();
   }
 

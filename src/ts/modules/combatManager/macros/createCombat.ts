@@ -35,8 +35,8 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
   const roundValue = value.round;
   const round =
     typeof roundValue === "number" && Number.isFinite(roundValue)
-      ? Math.max(0, Math.floor(roundValue))
-      : 0;
+      ? Math.max(1, Math.floor(roundValue))
+      : 1;
   const enabled = typeof value.enabled === "boolean" ? value.enabled : true;
   return { id, round, enabled };
 }
@@ -145,7 +145,7 @@ export async function createCombat(input: Input): Promise<void> {
   }
 
   const joiningNow = combat.combatants.filter(
-    (combatant) => combatant.enabled && combatant.round <= 0,
+    (combatant) => combatant.enabled && combatant.round <= 1,
   );
   const tokenDocuments = getTokenDocumentsByCombatants(scene, joiningNow);
   if (tokenDocuments.length === 0) {

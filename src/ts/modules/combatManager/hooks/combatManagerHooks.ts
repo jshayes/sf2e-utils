@@ -30,8 +30,8 @@ function coerceCombatant(value: unknown): CombatantEntry | null {
   const roundValue = value.round;
   const round =
     typeof roundValue === "number" && Number.isFinite(roundValue)
-      ? Math.max(0, Math.floor(roundValue))
-      : 0;
+      ? Math.max(1, Math.floor(roundValue))
+      : 1;
   const enabled = typeof value.enabled === "boolean" ? value.enabled : true;
   return { id, round, enabled };
 }
