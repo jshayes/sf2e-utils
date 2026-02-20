@@ -117,9 +117,14 @@ export class CombatManagerApp extends CombatManagerAppBase {
   #updateSceneHookId: number;
   #sceneId: string | null = null;
 
-  constructor() {
+  constructor(options: { selectCombatName?: string } = {}) {
     super({});
     this.#combats = this.#readCombatsFromScene();
+    const selectCombatName = options.selectCombatName?.trim();
+    if (selectCombatName) {
+      const index = this.#findCombatIndexByName(selectCombatName);
+      this.#selectedCombatIndex = index >= 0 ? index : null;
+    }
     this.#sceneId = game.scenes.current?.id ?? null;
     this.#controlTokenHookId = Hooks.on("controlToken", () => {
       this.#updateButtonStates();
@@ -538,6 +543,13 @@ export class CombatManagerApp extends CombatManagerAppBase {
       if (ignoreIndex !== null && index === ignoreIndex) return false;
       return combat.name.trim().toLocaleLowerCase() === normalized;
     });
+  }
+
+  #findCombatIndexByName(name: string): number {
+    const normalized = name.trim().toLocaleLowerCase();
+    return this.#combats.findIndex(
+      (combat) => combat.name.trim().toLocaleLowerCase() === normalized,
+    );
   }
 
   #getSelectedCombat(): CombatEntry | null {

@@ -1,3 +1,7 @@
+import {
+  registerStartCombatEnricher,
+  unregisterStartCombatEnricher,
+} from "./enrichers/startCombatEnricher";
 import { createCombat } from "./macros/createCombat";
 import {
   registerCombatManagerHooks,
@@ -11,9 +15,11 @@ export const combatManagerMacros = {
 };
 
 export function registerCombatManagerModule() {
+  registerStartCombatEnricher();
   registerCombatManagerHooks();
 }
 
 export function unregisterCombatManagerModule() {
+  unregisterStartCombatEnricher();
   unregisterCombatManagerHooks();
 }

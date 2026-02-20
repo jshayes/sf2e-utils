@@ -1,5 +1,11 @@
 import { CombatManagerApp } from "../applications/combatManagerApp";
 
-export async function open(): Promise<void> {
-  await new CombatManagerApp().render({ force: true });
+type OpenInput = {
+  selectCombatName?: string;
+};
+
+export async function open(input: OpenInput = {}): Promise<void> {
+  await new CombatManagerApp({
+    selectCombatName: input.selectCombatName,
+  }).render({ force: true });
 }
