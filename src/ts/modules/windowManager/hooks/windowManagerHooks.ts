@@ -13,7 +13,9 @@ const EXCLUDED_WINDOW_IDS = new Set([
   "menu",
 ]);
 
-function isApplicationV2(app: unknown): app is foundry.applications.api.ApplicationV2 {
+function isApplicationV2(
+  app: unknown,
+): app is foundry.applications.api.ApplicationV2 {
   return app instanceof foundry.applications.api.ApplicationV2;
 }
 

@@ -12,8 +12,18 @@ let entries: WindowRegistryEntry[] = [];
 let filteredEntries: WindowRegistryEntry[] = [];
 let activeIndex = 0;
 
+function isToggleShortcut(event: KeyboardEvent): boolean {
+  return event.code === "Space" && event.ctrlKey && event.shiftKey;
+}
+
 function onGlobalKeyDown(event: KeyboardEvent): void {
   if (!container) return;
+  if (isToggleShortcut(event)) {
+    event.preventDefault();
+    event.stopPropagation();
+    closeWindowSwitcher();
+    return;
+  }
   if (event.key !== "Escape") return;
   event.preventDefault();
   event.stopPropagation();
@@ -124,6 +134,12 @@ function onFocusOut(): void {
 }
 
 function onKeyDown(event: KeyboardEvent): void {
+  if (isToggleShortcut(event)) {
+    event.preventDefault();
+    event.stopPropagation();
+    closeWindowSwitcher();
+    return;
+  }
   if (event.key === "Tab") {
     event.preventDefault();
     cycleActive(event.shiftKey ? -1 : 1);
@@ -203,4 +219,8 @@ export function closeWindowSwitcher(): void {
   entries = [];
   filteredEntries = [];
   activeIndex = 0;
+}
+
+export function isWindowSwitcherOpen(): boolean {
+  return container instanceof HTMLDivElement;
 }
