@@ -313,6 +313,14 @@ function onKeyDown(event: KeyboardEvent): void {
   }
 }
 
+function positionWindowSwitcher(): void {
+  if (!container) return;
+  const margin = 16;
+  const { height } = container.getBoundingClientRect();
+  const top = Math.max(margin, Math.floor((window.innerHeight - height) / 2));
+  container.style.top = `${top}px`;
+}
+
 export function openWindowSwitcher(): void {
   if (container) {
     input?.focus();
@@ -349,6 +357,7 @@ export function openWindowSwitcher(): void {
   });
 
   refreshEntries();
+  positionWindowSwitcher();
   input.focus();
   input.select();
 }
