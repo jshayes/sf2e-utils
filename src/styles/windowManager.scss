@@ -1,37 +1,62 @@
-.window-manager .window-manager-search {
-  margin-bottom: 0.75rem;
+.sf2e-window-switcher {
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 6px;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 25%);
+  left: 50%;
+  max-height: min(70vh, 540px);
+  overflow: hidden;
+  padding: 0.5rem;
+  position: fixed;
+  top: 22%;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 2rem));
+  z-index: 9999;
 }
 
-.window-manager .window-manager-search input {
+.sf2e-window-switcher-input {
+  margin-bottom: 0.5rem;
   width: 100%;
 }
 
-.window-manager .window-manager-list {
+.sf2e-window-switcher-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.25rem;
+  max-height: min(60vh, 460px);
+  overflow: auto;
 }
 
-.window-manager .window-manager-row {
+.sf2e-window-switcher-row {
   align-items: center;
+  border: 1px solid transparent;
+  border-radius: 4px;
   display: flex;
   gap: 0.5rem;
   justify-content: space-between;
+  text-align: left;
+  width: 100%;
 }
 
-.window-manager .window-manager-name {
+.sf2e-window-switcher-row.is-active {
+  background: var(--color-bg-option);
+  border-color: var(--color-border-highlight);
+}
+
+.sf2e-window-switcher-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.window-manager .window-manager-type {
+.sf2e-window-switcher-type {
   color: var(--color-text-dark-secondary);
   flex-shrink: 0;
   font-size: var(--font-size-12);
 }
 
-.window-manager .window-manager-empty {
+.sf2e-window-switcher-empty {
   color: var(--color-text-dark-secondary);
   margin: 0;
+  padding: 0.25rem;
 }

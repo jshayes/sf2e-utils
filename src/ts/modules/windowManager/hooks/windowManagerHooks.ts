@@ -1,27 +1,38 @@
 import { HooksManager } from "../../../helpers/hooks";
-import { moduleId } from "../../../constants";
 import { windowRegistry } from "../state/windowRegistry";
 
 const hooks = new HooksManager();
 
-function isWindowManagerApp(
-  app: foundry.applications.api.ApplicationV2,
-): boolean {
-  return String(app.id ?? "") === `${moduleId}-window-manager`;
+const EXCLUDED_WINDOW_IDS = new Set([
+  "hotbar",
+  "pause",
+  "sidebar",
+  "navigation",
+  "scene-controls",
+  "players",
+  "menu",
+]);
+
+function shouldTrackWindow(app: foundry.applications.api.ApplicationV2): boolean {
+  // Restrict to framed "window-like" apps (sheets, dialogs, popouts).
+  if (!app.hasFrame) return false;
+
+  const id = String(app.id ?? "").trim().toLocaleLowerCase();
+  if (EXCLUDED_WINDOW_IDS.has(id)) return false;
+
+  return true;
 }
 
 export function registerWindowManagerHooks(): void {
   hooks.on("renderApplicationV2", (app) => {
-    console.log("renderApplicationV2");
     if (!(app instanceof foundry.applications.api.ApplicationV2)) return;
-    if (isWindowManagerApp(app)) return;
-    console.log(app);
+    if (!shouldTrackWindow(app)) return;
     windowRegistry.upsert(app);
   });
 
   hooks.on("closeApplicationV2", (app) => {
     if (!(app instanceof foundry.applications.api.ApplicationV2)) return;
-    if (isWindowManagerApp(app)) return;
+    if (!shouldTrackWindow(app)) return;
     windowRegistry.remove(app);
   });
 }

@@ -1,5 +1,5 @@
-import { WindowManagerApp } from "../applications/windowManagerApp";
+import { openWindowSwitcher } from "../popup/windowSwitcher";
 
 export async function open(): Promise<void> {
-  await new WindowManagerApp().render({ force: true });
+  openWindowSwitcher();
 }
