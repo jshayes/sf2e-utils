@@ -16,6 +16,10 @@ type ExpandedWindowState = {
 };
 
 const expandedWindows = new WeakMap<WindowResizerApp, ExpandedWindowState>();
+const appKeydownHandlers = new WeakMap<
+  WindowResizerApp,
+  (event: KeyboardEvent) => void
+>();
 const baselineSizesByKey = new Map<
   string,
   Pick<PositionState, "width" | "height" | "scale">
@@ -245,6 +249,43 @@ export function clearWindowSizeState(appInput: unknown): void {
   const app = asWindowResizerApp(appInput);
   if (!app) return;
   expandedWindows.delete(app);
+}
+
+export function attachAppKeydownListener(
+  appInput: unknown,
+  handler: (event: KeyboardEvent) => void,
+): void {
+  const app = asWindowResizerApp(appInput);
+  if (!app) return;
+
+  const root = getRootElement(app);
+  if (!(root instanceof HTMLElement)) return;
+
+  detachAppKeydownListener(app);
+
+  const wrapped = (event: KeyboardEvent): void => {
+    const target = event.target;
+    if (!(target instanceof Node)) return;
+    if (!root.contains(target)) return;
+    handler(event);
+  };
+
+  root.addEventListener("keydown", wrapped, true);
+  appKeydownHandlers.set(app, wrapped);
+}
+
+export function detachAppKeydownListener(appInput: unknown): void {
+  const app = asWindowResizerApp(appInput);
+  if (!app) return;
+
+  const root = getRootElement(app);
+  if (!(root instanceof HTMLElement)) return;
+
+  const existing = appKeydownHandlers.get(app);
+  if (!existing) return;
+
+  root.removeEventListener("keydown", existing, true);
+  appKeydownHandlers.delete(app);
 }
 
 export function attachResizeHeaderButton(appInput: unknown): void {
