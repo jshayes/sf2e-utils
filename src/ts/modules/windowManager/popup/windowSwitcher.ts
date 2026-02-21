@@ -9,7 +9,15 @@ let input: HTMLInputElement | null = null;
 let list: HTMLDivElement | null = null;
 let unsubscribe: (() => void) | null = null;
 let entries: WindowRegistryEntry[] = [];
-let filteredEntries: WindowRegistryEntry[] = [];
+type FilteredWindowEntry = {
+  entry: WindowRegistryEntry;
+  score: number;
+  nameScore: number;
+  typeScore: number;
+  nameMatchIndices: Set<number>;
+  typeMatchIndices: Set<number>;
+};
+let filteredEntries: FilteredWindowEntry[] = [];
 let activeIndex = 0;
 
 function isToggleShortcut(event: KeyboardEvent): boolean {
@@ -36,12 +44,16 @@ function getSearchValue(): string {
     .toLocaleLowerCase();
 }
 
-function fuzzyScore(query: string, target: string): number | null {
-  if (!query) return 0;
+function fuzzyMatch(
+  query: string,
+  target: string,
+): { score: number; indices: number[] } | null {
+  if (!query) return { score: 0, indices: [] };
 
   let score = 0;
   let queryIndex = 0;
   let consecutive = 0;
+  const indices: number[] = [];
 
   for (let i = 0; i < target.length; i += 1) {
     if (queryIndex >= query.length) break;
@@ -64,31 +76,115 @@ function fuzzyScore(query: string, target: string): number | null {
       score += 2;
     }
 
+    indices.push(i);
     queryIndex += 1;
   }
 
   if (queryIndex !== query.length) return null;
-  return score;
+  return { score, indices };
+}
+
+function pickBestMatch(
+  query: string,
+  entry: WindowRegistryEntry,
+): FilteredWindowEntry | null {
+  const name = entry.name.toLocaleLowerCase();
+  const type = entry.type.toLocaleLowerCase();
+
+  if (!query) {
+    return {
+      entry,
+      score: 0,
+      nameScore: 0,
+      typeScore: 0,
+      nameMatchIndices: new Set<number>(),
+      typeMatchIndices: new Set<number>(),
+    };
+  }
+
+  const nameMatch = fuzzyMatch(query, name);
+  const typeMatch = fuzzyMatch(query, type);
+  const combinedMatch = fuzzyMatch(query, `${name} ${type}`);
+
+  const candidates: FilteredWindowEntry[] = [];
+  if (nameMatch) {
+    candidates.push({
+      entry,
+      score: nameMatch.score * 2,
+      nameScore: nameMatch.score,
+      typeScore: 0,
+      nameMatchIndices: new Set(nameMatch.indices),
+      typeMatchIndices: new Set<number>(),
+    });
+  }
+  if (typeMatch) {
+    candidates.push({
+      entry,
+      score: typeMatch.score,
+      nameScore: 0,
+      typeScore: typeMatch.score,
+      nameMatchIndices: new Set<number>(),
+      typeMatchIndices: new Set(typeMatch.indices),
+    });
+  }
+  if (combinedMatch) {
+    const nameMatchIndices = new Set<number>();
+    const typeMatchIndices = new Set<number>();
+    for (const index of combinedMatch.indices) {
+      if (index < name.length) {
+        nameMatchIndices.add(index);
+      } else if (index > name.length) {
+        typeMatchIndices.add(index - name.length - 1);
+      }
+    }
+    candidates.push({
+      entry,
+      score: combinedMatch.score + nameMatchIndices.size * 2,
+      nameScore: nameMatchIndices.size,
+      typeScore: typeMatchIndices.size,
+      nameMatchIndices,
+      typeMatchIndices,
+    });
+  }
+
+  if (candidates.length === 0) return null;
+  return candidates.sort((a, b) => b.score - a.score)[0];
+}
+
+function renderHighlightedText(
+  container: HTMLElement,
+  text: string,
+  matchIndices: Set<number>,
+): void {
+  container.replaceChildren();
+
+  if (matchIndices.size === 0) {
+    container.innerText = text;
+    return;
+  }
+
+  for (let i = 0; i < text.length; i += 1) {
+    const char = document.createElement("span");
+    char.innerText = text[i] ?? "";
+    if (matchIndices.has(i)) {
+      char.classList.add("sf2e-window-switcher-match");
+    }
+    container.appendChild(char);
+  }
 }
 
 function applyFilter(): void {
   const q = getSearchValue();
   const ranked = entries
-    .map((entry) => {
-      const haystack = `${entry.name} ${entry.type}`.toLocaleLowerCase();
-      const score = fuzzyScore(q, haystack);
-      return score === null ? null : { entry, score };
-    })
-    .filter(
-      (row): row is { entry: WindowRegistryEntry; score: number } =>
-        row !== null,
-    )
+    .map((entry) => pickBestMatch(q, entry))
+    .filter((row): row is FilteredWindowEntry => row !== null)
     .sort(
-      (a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name),
+      (a, b) =>
+        b.nameScore - a.nameScore ||
+        b.score - a.score ||
+        a.entry.name.localeCompare(b.entry.name),
     );
-  console.log(ranked);
-
-  filteredEntries = ranked.map((row) => row.entry);
+  filteredEntries = ranked;
   if (activeIndex >= filteredEntries.length) {
     activeIndex = Math.max(0, filteredEntries.length - 1);
   }
@@ -107,7 +203,8 @@ function renderList(): void {
     return;
   }
 
-  filteredEntries.forEach((entry, index) => {
+  filteredEntries.forEach((filteredEntry, index) => {
+    const entry = filteredEntry.entry;
     const row = document.createElement("button");
     row.type = "button";
     row.classList.add("sf2e-window-switcher-row");
@@ -116,11 +213,11 @@ function renderList(): void {
 
     const name = document.createElement("span");
     name.classList.add("sf2e-window-switcher-name");
-    name.innerText = entry.name;
+    renderHighlightedText(name, entry.name, filteredEntry.nameMatchIndices);
 
     const type = document.createElement("span");
     type.classList.add("sf2e-window-switcher-type");
-    type.innerText = entry.type;
+    renderHighlightedText(type, entry.type, filteredEntry.typeMatchIndices);
 
     row.appendChild(name);
     row.appendChild(type);
@@ -153,9 +250,9 @@ function cycleActive(delta: number): void {
 
 function focusActiveWindow(): void {
   if (filteredEntries.length === 0) return;
-  const entry = filteredEntries[activeIndex];
-  if (!entry) return;
-  focusApp(entry.app);
+  const filteredEntry = filteredEntries[activeIndex];
+  if (!filteredEntry) return;
+  focusApp(filteredEntry.entry.app);
 }
 
 function focusApp(app: WindowManagerApp): void {
