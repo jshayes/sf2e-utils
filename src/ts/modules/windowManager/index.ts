@@ -26,11 +26,57 @@ function toggleWindowSwitcher(): void {
   }
 }
 
-function isToggleShortcut(event: KeyboardEvent): boolean {
-  if (event.code !== TOGGLE_SWITCHER_KEY) return false;
-  if (!event.ctrlKey || !event.shiftKey) return false;
-  if (event.altKey || event.metaKey) return false;
+function eventModifierPressed(event: KeyboardEvent, modifier: string): boolean {
+  switch (modifier.toLowerCase()) {
+    case "control":
+    case "ctrl":
+      return event.ctrlKey;
+    case "shift":
+      return event.shiftKey;
+    case "alt":
+      return event.altKey;
+    case "meta":
+      return event.metaKey;
+    default:
+      return false;
+  }
+}
+
+function keybindingMatchesEvent(
+  event: KeyboardEvent,
+  binding: { key: string | null; modifiers: string[] },
+): boolean {
+  if (!binding.key || event.code !== binding.key) return false;
+
+  const required = new Set(binding.modifiers.map((m) => m.toLowerCase()));
+  const allModifiers = ["control", "shift", "alt", "meta"];
+  for (const modifier of allModifiers) {
+    const isRequired = required.has(modifier);
+    const isPressed = eventModifierPressed(event, modifier);
+    if (isRequired !== isPressed) return false;
+  }
   return true;
+}
+
+function getCurrentBindings(): Array<{
+  key: string | null;
+  modifiers: string[];
+}> {
+  const bindings = game.keybindings.get(moduleId, OPEN_WINDOW_SWITCHER_KEYBIND);
+  if (bindings.length > 0) {
+    return bindings.map((binding) => ({
+      key: binding.key,
+      modifiers: [...binding.modifiers],
+    }));
+  }
+
+  return [];
+}
+
+function isToggleShortcut(event: KeyboardEvent): boolean {
+  return getCurrentBindings().some((binding) =>
+    keybindingMatchesEvent(event, binding),
+  );
 }
 
 function onGlobalToggleShortcut(event: KeyboardEvent): void {
@@ -59,7 +105,9 @@ function registerWindowManagerKeybindings(): void {
   game.keybindings.register(moduleId, OPEN_WINDOW_SWITCHER_KEYBIND, {
     name: "Window Manager: Open Switcher",
     hint: "Open the quick window switcher popup.",
-    editable: [{ key: TOGGLE_SWITCHER_KEY, modifiers: [...TOGGLE_SWITCHER_MODIFIERS] }],
+    editable: [
+      { key: TOGGLE_SWITCHER_KEY, modifiers: [...TOGGLE_SWITCHER_MODIFIERS] },
+    ],
     onDown,
     precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL,
   });
