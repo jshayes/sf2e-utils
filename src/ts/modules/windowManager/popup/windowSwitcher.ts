@@ -160,7 +160,7 @@ export function openWindowSwitcher(): void {
   }
 
   container = document.createElement("div");
-  container.classList.add("sf2e-window-switcher");
+  container.classList.add("sf2e-window-switcher", "application");
   container.tabIndex = -1;
   container.addEventListener("focusout", onFocusOut);
 
