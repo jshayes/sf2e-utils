@@ -2,6 +2,7 @@
 @use "./dicePresetManager";
 @use "./combatManager";
 @use "./windowManager";
+@use "./windowResizer";
 
 span.inline-check {
   background: var(--content-link-background);

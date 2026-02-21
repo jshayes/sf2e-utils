@@ -22,6 +22,10 @@ import {
   unregisterWindowManagerModule,
   windowManagerMacros,
 } from "./windowManager";
+import {
+  registerWindowResizerModule,
+  unregisterWindowResizerModule,
+} from "./windowResizer";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
@@ -36,6 +40,7 @@ export function registerModules() {
   registerJournalEditorEnhancementsModule();
   registerRollResolverModule();
   registerWindowManagerModule();
+  registerWindowResizerModule();
 }
 
 export function unregisterModules() {
@@ -45,4 +50,5 @@ export function unregisterModules() {
   unregisterJournalEditorEnhancementsModule();
   unregisterRollResolverModule();
   unregisterWindowManagerModule();
+  unregisterWindowResizerModule();
 }
