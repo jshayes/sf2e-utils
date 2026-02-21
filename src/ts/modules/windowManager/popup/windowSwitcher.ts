@@ -17,6 +17,7 @@ type FilteredWindowEntry = {
   nameMatchIndices: Set<number>;
   typeMatchIndices: Set<number>;
 };
+type RankedWindowEntry = FilteredWindowEntry & { isActive: boolean };
 let filteredEntries: FilteredWindowEntry[] = [];
 let activeIndex = 0;
 let suppressHoverUntilMouseMove = false;
@@ -178,16 +179,22 @@ function renderHighlightedText(
 
 function applyFilter(): void {
   const q = getSearchValue();
+  const activeWindow = (ui as unknown as { activeWindow?: unknown }).activeWindow;
   const ranked = entries
-    .map((entry) => pickBestMatch(q, entry))
-    .filter((row): row is FilteredWindowEntry => row !== null)
+    .map((entry) => {
+      const matched = pickBestMatch(q, entry);
+      if (!matched) return null;
+      return { ...matched, isActive: entry.app === activeWindow };
+    })
+    .filter((row): row is RankedWindowEntry => row !== null)
     .sort(
       (a, b) =>
+        Number(a.isActive) - Number(b.isActive) ||
         b.nameScore - a.nameScore ||
         b.score - a.score ||
         a.entry.name.localeCompare(b.entry.name),
     );
-  filteredEntries = ranked;
+  filteredEntries = ranked.map(({ isActive: _isActive, ...entry }) => entry);
   if (activeIndex >= filteredEntries.length) {
     activeIndex = Math.max(0, filteredEntries.length - 1);
   }
