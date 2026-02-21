@@ -1,0 +1,28 @@
+<div class="window-manager-app">
+  <div class="window-manager-search">
+    <input
+      type="text"
+      data-window-search
+      placeholder="Search windows..."
+      value="{{search}}"
+    />
+  </div>
+
+  <div class="window-manager-list">
+    {{#if hasWindows}}
+      {{#each windows}}
+        <button
+          type="button"
+          class="window-manager-row"
+          data-action="focus-window"
+          data-key="{{this.key}}"
+        >
+          <span class="window-manager-name">{{this.name}}</span>
+          <span class="window-manager-type">{{this.type}}</span>
+        </button>
+      {{/each}}
+    {{else}}
+      <p class="window-manager-empty">No open windows.</p>
+    {{/if}}
+  </div>
+</div>

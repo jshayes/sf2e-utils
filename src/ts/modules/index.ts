@@ -17,10 +17,16 @@ import {
   registerRollResolverModule,
   unregisterRollResolverModule,
 } from "./rollResolver";
+import {
+  registerWindowManagerModule,
+  unregisterWindowManagerModule,
+  windowManagerMacros,
+} from "./windowManager";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
   numberTracker: numberTrackerMacros,
+  windowManager: windowManagerMacros,
 };
 
 export function registerModules() {
@@ -29,6 +35,7 @@ export function registerModules() {
   registerHideDeadModule();
   registerJournalEditorEnhancementsModule();
   registerRollResolverModule();
+  registerWindowManagerModule();
 }
 
 export function unregisterModules() {
@@ -37,4 +44,5 @@ export function unregisterModules() {
   unregisterHideDeadModule();
   unregisterJournalEditorEnhancementsModule();
   unregisterRollResolverModule();
+  unregisterWindowManagerModule();
 }

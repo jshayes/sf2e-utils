@@ -1,0 +1,75 @@
+type WindowRegistryEntry = {
+  key: number;
+  id: string;
+  name: string;
+  type: string;
+  app: foundry.applications.api.ApplicationV2;
+};
+
+type Subscriber = () => void;
+
+class WindowRegistry {
+  #entries = new Map<number, WindowRegistryEntry>();
+  #appToKey = new WeakMap<foundry.applications.api.ApplicationV2, number>();
+  #nextKey = 1;
+  #subscribers = new Set<Subscriber>();
+
+  upsert(app: foundry.applications.api.ApplicationV2): void {
+    const key = this.#appToKey.get(app) ?? this.#nextKey++;
+    this.#appToKey.set(app, key);
+
+    const nextEntry: WindowRegistryEntry = {
+      key,
+      id: String(app.id ?? ""),
+      name: this.#resolveAppName(app),
+      type: app.constructor.name,
+      app,
+    };
+
+    const prevEntry = this.#entries.get(key);
+    const changed =
+      !prevEntry ||
+      prevEntry.id !== nextEntry.id ||
+      prevEntry.name !== nextEntry.name ||
+      prevEntry.type !== nextEntry.type ||
+      prevEntry.app !== nextEntry.app;
+
+    if (!changed) return;
+
+    this.#entries.set(key, nextEntry);
+    this.#notify();
+  }
+
+  remove(app: foundry.applications.api.ApplicationV2): void {
+    const key = this.#appToKey.get(app);
+    if (key === undefined) return;
+    this.#entries.delete(key);
+    this.#notify();
+  }
+
+  list(): WindowRegistryEntry[] {
+    return Array.from(this.#entries.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+  }
+
+  subscribe(subscriber: Subscriber): () => void {
+    this.#subscribers.add(subscriber);
+    return () => {
+      this.#subscribers.delete(subscriber);
+    };
+  }
+
+  #resolveAppName(app: foundry.applications.api.ApplicationV2): string {
+    return String(app.title ?? app.id ?? app.constructor.name);
+  }
+
+  #notify(): void {
+    for (const subscriber of this.#subscribers) {
+      subscriber();
+    }
+  }
+}
+
+export const windowRegistry = new WindowRegistry();
+export type { WindowRegistryEntry };

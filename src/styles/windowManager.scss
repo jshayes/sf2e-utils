@@ -1,0 +1,37 @@
+.window-manager .window-manager-search {
+  margin-bottom: 0.75rem;
+}
+
+.window-manager .window-manager-search input {
+  width: 100%;
+}
+
+.window-manager .window-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.window-manager .window-manager-row {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.window-manager .window-manager-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.window-manager .window-manager-type {
+  color: var(--color-text-dark-secondary);
+  flex-shrink: 0;
+  font-size: var(--font-size-12);
+}
+
+.window-manager .window-manager-empty {
+  color: var(--color-text-dark-secondary);
+  margin: 0;
+}
