@@ -13,6 +13,7 @@ type PositionState = {
 type ExpandedWindowState = {
   restorePosition: PositionState;
   baselineSize: Pick<PositionState, "width" | "height" | "scale">;
+  phase: "half" | "full";
 };
 
 const expandedWindows = new WeakMap<WindowResizerApp, ExpandedWindowState>();
@@ -136,6 +137,34 @@ function getExpandedPosition(): PositionState {
   };
 }
 
+function getHalfExpandedPosition(current: PositionState): PositionState {
+  const full = getExpandedPosition();
+  const fullWidth = full.width ?? 960;
+  const fullHeight = full.height ?? 720;
+  const fullLeft = full.left ?? 24;
+  const fullTop = full.top ?? 16;
+
+  const gutter = 16;
+  const width = Math.max(420, Math.floor((fullWidth - gutter) / 2));
+  const height = fullHeight;
+
+  const leftCandidate = fullLeft;
+  const rightCandidate = fullLeft + fullWidth - width;
+
+  const currentLeft = current.left ?? fullLeft;
+  const currentWidth = current.width ?? width;
+  const currentCenter = currentLeft + currentWidth / 2;
+  const fullCenter = fullLeft + fullWidth / 2;
+  const useRight = currentCenter > fullCenter;
+
+  return {
+    width,
+    height,
+    left: useRight ? rightCandidate : leftCandidate,
+    top: fullTop,
+  };
+}
+
 function isAtExpandedSize(
   position: PositionState,
   expanded: PositionState,
@@ -206,12 +235,23 @@ export function toggleWindowSize(appInput: unknown): boolean {
   if (!app) return false;
   if (!isResizableWindow(app)) return false;
 
-  const expandedPosition = getExpandedPosition();
   const currentPosition = getCurrentPosition(app);
+  const expandedPosition = getExpandedPosition();
+  const halfExpandedPosition = getHalfExpandedPosition(currentPosition);
   const baselineSize = getBaselineSize(app);
 
   const state = expandedWindows.get(app);
   if (state) {
+    if (state.phase === "half") {
+      expandedWindows.set(app, {
+        ...state,
+        phase: "full",
+      });
+      setPosition(app, expandedPosition);
+      focusApp(app);
+      return true;
+    }
+
     expandedWindows.delete(app);
     setPosition(app, {
       ...state.restorePosition,
@@ -230,11 +270,21 @@ export function toggleWindowSize(appInput: unknown): boolean {
     return true;
   }
 
+  if (isAtExpandedSize(currentPosition, halfExpandedPosition)) {
+    setPosition(app, {
+      ...currentPosition,
+      ...baselineSize,
+    });
+    focusApp(app);
+    return true;
+  }
+
   expandedWindows.set(app, {
     restorePosition: currentPosition,
     baselineSize,
+    phase: "half",
   });
-  setPosition(app, expandedPosition);
+  setPosition(app, halfExpandedPosition);
   focusApp(app);
   return true;
 }
