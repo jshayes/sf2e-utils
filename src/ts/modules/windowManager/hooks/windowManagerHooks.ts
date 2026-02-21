@@ -61,6 +61,19 @@ export function registerWindowManagerHooks(): void {
     if (!shouldTrackWindow(app)) return;
     windowRegistry.remove(app);
   });
+
+  hooks.on("renderActorSheet", (app: unknown) => {
+    console.log("renderActorSheet", app);
+    if (!isApplicationV1(app)) return;
+    if (!shouldTrackWindow(app)) return;
+    windowRegistry.upsert(app);
+  });
+
+  hooks.on("closeActorSheet", (app: unknown) => {
+    if (!isApplicationV1(app)) return;
+    if (!shouldTrackWindow(app)) return;
+    windowRegistry.remove(app);
+  });
 }
 
 export function unregisterWindowManagerHooks(): void {
