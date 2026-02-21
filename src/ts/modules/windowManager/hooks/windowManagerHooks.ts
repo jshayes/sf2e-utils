@@ -37,7 +37,6 @@ function shouldTrackWindow(app: WindowManagerApp): boolean {
 
 export function registerWindowManagerHooks(): void {
   hooks.on("renderApplicationV2", (app: unknown) => {
-    console.log("renderApplicationV2", app);
     if (!isApplicationV2(app)) return;
     if (!shouldTrackWindow(app)) return;
     windowRegistry.upsert(app);
@@ -50,7 +49,6 @@ export function registerWindowManagerHooks(): void {
   });
 
   hooks.on("renderApplication", (app: unknown) => {
-    console.log("renderApplication", app);
     if (!isApplicationV1(app)) return;
     if (!shouldTrackWindow(app)) return;
     windowRegistry.upsert(app);
@@ -63,7 +61,6 @@ export function registerWindowManagerHooks(): void {
   });
 
   hooks.on("renderActorSheet", (app: unknown) => {
-    console.log("renderActorSheet", app);
     if (!isApplicationV1(app)) return;
     if (!shouldTrackWindow(app)) return;
     windowRegistry.upsert(app);
