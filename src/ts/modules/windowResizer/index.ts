@@ -58,7 +58,6 @@ function getCurrentBindings(): Array<{
   modifiers: string[];
 }> {
   const bindings = game.keybindings.get(moduleId, KEYBIND_ACTION);
-  console.log({ bindings });
   if (bindings.length > 0) {
     return bindings.map((binding) => ({
       key: binding.key,
