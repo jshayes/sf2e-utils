@@ -20,6 +20,8 @@ type FilteredWindowEntry = {
 let filteredEntries: FilteredWindowEntry[] = [];
 let activeIndex = 0;
 let suppressHoverUntilMouseMove = false;
+let previouslyFocusedElement: HTMLElement | null = null;
+let shouldRestorePreviousFocus = false;
 
 function isToggleShortcut(event: KeyboardEvent): boolean {
   return event.code === "Space" && event.ctrlKey && event.shiftKey;
@@ -258,6 +260,7 @@ function focusActiveWindow(): void {
   if (filteredEntries.length === 0) return;
   const filteredEntry = filteredEntries[activeIndex];
   if (!filteredEntry) return;
+  shouldRestorePreviousFocus = false;
   focusApp(filteredEntry.entry.app);
 }
 
@@ -279,6 +282,7 @@ function onFocusOut(): void {
     if (!container) return;
     const active = document.activeElement;
     if (!active || !container.contains(active)) {
+      shouldRestorePreviousFocus = false;
       closeWindowSwitcher();
     }
   }, 0);
@@ -334,6 +338,10 @@ export function openWindowSwitcher(): void {
     return;
   }
 
+  previouslyFocusedElement =
+    document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  shouldRestorePreviousFocus = true;
+
   container = document.createElement("div");
   container.classList.add("sf2e-window-switcher", "application");
   container.tabIndex = -1;
@@ -370,6 +378,13 @@ export function openWindowSwitcher(): void {
 }
 
 export function closeWindowSwitcher(): void {
+  const focusTarget =
+    shouldRestorePreviousFocus &&
+    previouslyFocusedElement instanceof HTMLElement &&
+    previouslyFocusedElement.isConnected
+      ? previouslyFocusedElement
+      : null;
+
   document.removeEventListener("keydown", onGlobalKeyDown, true);
   unsubscribe?.();
   unsubscribe = null;
@@ -381,6 +396,14 @@ export function closeWindowSwitcher(): void {
   filteredEntries = [];
   activeIndex = 0;
   suppressHoverUntilMouseMove = false;
+  previouslyFocusedElement = null;
+  shouldRestorePreviousFocus = false;
+
+  if (focusTarget) {
+    window.setTimeout(() => {
+      focusTarget.focus({ preventScroll: true });
+    }, 0);
+  }
 }
 
 export function isWindowSwitcherOpen(): boolean {
