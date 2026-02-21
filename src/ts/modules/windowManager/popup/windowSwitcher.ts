@@ -19,6 +19,7 @@ type FilteredWindowEntry = {
 };
 let filteredEntries: FilteredWindowEntry[] = [];
 let activeIndex = 0;
+let suppressHoverUntilMouseMove = false;
 
 function isToggleShortcut(event: KeyboardEvent): boolean {
   return event.code === "Space" && event.ctrlKey && event.shiftKey;
@@ -222,11 +223,16 @@ function renderList(): void {
     row.appendChild(name);
     row.appendChild(type);
 
-    row.addEventListener("mouseenter", () => {
+    row.addEventListener("mousemove", () => {
+      if (suppressHoverUntilMouseMove) {
+        suppressHoverUntilMouseMove = false;
+      }
+      if (activeIndex === index) return;
       activeIndex = index;
       renderList();
     });
     row.addEventListener("click", () => {
+      activeIndex = index;
       focusActiveWindow();
       closeWindowSwitcher();
     });
@@ -339,6 +345,7 @@ export function openWindowSwitcher(): void {
   input.placeholder = "Search windows...";
   input.addEventListener("input", () => {
     activeIndex = 0;
+    suppressHoverUntilMouseMove = true;
     applyFilter();
     renderList();
   });
@@ -373,6 +380,7 @@ export function closeWindowSwitcher(): void {
   entries = [];
   filteredEntries = [];
   activeIndex = 0;
+  suppressHoverUntilMouseMove = false;
 }
 
 export function isWindowSwitcherOpen(): boolean {
