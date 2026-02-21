@@ -36,11 +36,59 @@ function getSearchValue(): string {
     .toLocaleLowerCase();
 }
 
+function fuzzyScore(query: string, target: string): number | null {
+  if (!query) return 0;
+
+  let score = 0;
+  let queryIndex = 0;
+  let consecutive = 0;
+
+  for (let i = 0; i < target.length; i += 1) {
+    if (queryIndex >= query.length) break;
+    if (target[i] !== query[queryIndex]) {
+      consecutive = 0;
+      continue;
+    }
+
+    // Base match score.
+    score += 1;
+
+    // Favor consecutive matches.
+    consecutive += 1;
+    score += consecutive * 2;
+
+    // Favor matches near start and token boundaries.
+    if (i === 0 || target[i - 1] === " " || target[i - 1] === "-") {
+      score += 6;
+    } else if (i < 5) {
+      score += 2;
+    }
+
+    queryIndex += 1;
+  }
+
+  if (queryIndex !== query.length) return null;
+  return score;
+}
+
 function applyFilter(): void {
   const q = getSearchValue();
-  filteredEntries = entries.filter((entry) =>
-    `${entry.name} ${entry.type}`.toLocaleLowerCase().includes(q),
-  );
+  const ranked = entries
+    .map((entry) => {
+      const haystack = `${entry.name} ${entry.type}`.toLocaleLowerCase();
+      const score = fuzzyScore(q, haystack);
+      return score === null ? null : { entry, score };
+    })
+    .filter(
+      (row): row is { entry: WindowRegistryEntry; score: number } =>
+        row !== null,
+    )
+    .sort(
+      (a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name),
+    );
+  console.log(ranked);
+
+  filteredEntries = ranked.map((row) => row.entry);
   if (activeIndex >= filteredEntries.length) {
     activeIndex = Math.max(0, filteredEntries.length - 1);
   }
