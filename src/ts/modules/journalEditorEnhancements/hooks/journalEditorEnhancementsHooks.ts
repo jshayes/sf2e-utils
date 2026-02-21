@@ -177,6 +177,8 @@ function isInsertSkillCheckShortcut(event: KeyboardEvent): boolean {
 const hooks = new HooksManager();
 export function registerJournalEditorEnhancementsHooks(): void {
   hooks.on("getProseMirrorMenuItems", (menu, items) => {
+    if (!game.user.isGM) return;
+
     const targetItems = items as Array<{
       action: string;
       title: string;
@@ -198,6 +200,8 @@ export function registerJournalEditorEnhancementsHooks(): void {
   });
 
   hooks.on("createProseMirrorEditor", (_uuid, plugins) => {
+    if (!game.user.isGM) return;
+
     const pluginCtor = (
       globalThis as unknown as {
         ProseMirror?: { Plugin?: new (config: unknown) => unknown };

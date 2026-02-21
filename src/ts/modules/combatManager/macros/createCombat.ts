@@ -121,6 +121,8 @@ async function saveSceneCombats(
 }
 
 export async function createCombat(input: Input): Promise<void> {
+  if (!game.user.isGM) return;
+
   validateInput(input);
 
   const scene = game.scenes.current;

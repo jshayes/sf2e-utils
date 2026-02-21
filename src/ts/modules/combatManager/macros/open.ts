@@ -5,6 +5,7 @@ type OpenInput = {
 };
 
 export async function open(input: OpenInput = {}): Promise<void> {
+  if (!game.user.isGM) return;
   await new CombatManagerApp({
     selectCombatName: input.selectCombatName,
   }).render({ force: true });
