@@ -1,5 +1,6 @@
 import {
   windowRegistry,
+  type WindowManagerApp,
   type WindowRegistryEntry,
 } from "../state/windowRegistry";
 
@@ -96,8 +97,20 @@ function focusActiveWindow(): void {
   if (filteredEntries.length === 0) return;
   const entry = filteredEntries[activeIndex];
   if (!entry) return;
-  entry.app.bringToFront();
-  entry.app.maximize();
+  focusApp(entry.app);
+}
+
+function focusApp(app: WindowManagerApp): void {
+  // V2 apps expose bringToFront, while V1 apps expose bringToTop.
+  if ("bringToFront" in app && typeof app.bringToFront === "function") {
+    app.bringToFront();
+  } else if ("bringToTop" in app && typeof app.bringToTop === "function") {
+    app.bringToTop();
+  }
+
+  if ("maximize" in app && typeof app.maximize === "function") {
+    app.maximize();
+  }
 }
 
 function onFocusOut(): void {

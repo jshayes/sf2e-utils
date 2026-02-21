@@ -3,18 +3,21 @@ type WindowRegistryEntry = {
   id: string;
   name: string;
   type: string;
-  app: foundry.applications.api.ApplicationV2;
+  app: WindowManagerApp;
 };
 
 type Subscriber = () => void;
+type WindowManagerApp =
+  | foundry.applications.api.ApplicationV2
+  | foundry.appv1.api.Application;
 
 class WindowRegistry {
   #entries = new Map<number, WindowRegistryEntry>();
-  #appToKey = new WeakMap<foundry.applications.api.ApplicationV2, number>();
+  #appToKey = new WeakMap<WindowManagerApp, number>();
   #nextKey = 1;
   #subscribers = new Set<Subscriber>();
 
-  upsert(app: foundry.applications.api.ApplicationV2): void {
+  upsert(app: WindowManagerApp): void {
     const key = this.#appToKey.get(app) ?? this.#nextKey++;
     this.#appToKey.set(app, key);
 
@@ -40,7 +43,7 @@ class WindowRegistry {
     this.#notify();
   }
 
-  remove(app: foundry.applications.api.ApplicationV2): void {
+  remove(app: WindowManagerApp): void {
     const key = this.#appToKey.get(app);
     if (key === undefined) return;
     this.#entries.delete(key);
@@ -60,7 +63,7 @@ class WindowRegistry {
     };
   }
 
-  #resolveAppName(app: foundry.applications.api.ApplicationV2): string {
+  #resolveAppName(app: WindowManagerApp): string {
     return String(app.title ?? app.id ?? app.constructor.name);
   }
 
@@ -72,4 +75,4 @@ class WindowRegistry {
 }
 
 export const windowRegistry = new WindowRegistry();
-export type { WindowRegistryEntry };
+export type { WindowRegistryEntry, WindowManagerApp };
