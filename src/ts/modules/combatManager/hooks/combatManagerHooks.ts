@@ -5,7 +5,10 @@ import {
   setDiceRollsTo,
   setDiceRollsToDefault,
 } from "../../../macros/toggleDice";
-import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
+import {
+  COMBAT_MANAGER_COMBAT_FLAG_KEY,
+  COMBAT_MANAGER_FLAG_KEY,
+} from "../constants";
 import { HooksManager } from "../../../helpers/hooks";
 
 type CombatantEntry = {
@@ -81,11 +84,9 @@ function getPendingCombatantsForRound(
 
 async function addPendingCombatantsAndRoll(
   combat: foundry.documents.Combat,
+  scene: foundry.documents.Scene,
   pending: CombatantEntry[],
 ): Promise<number> {
-  const scene = combat.scene;
-  if (!(scene instanceof foundry.documents.Scene)) return 0;
-
   const pendingIds = new Set(pending.map((entry) => entry.id));
   const tokenDocuments = scene.tokens.filter((token) =>
     pendingIds.has(token.id),
@@ -96,6 +97,7 @@ async function addPendingCombatantsAndRoll(
     "Combatant",
     tokenDocuments.map((token) => ({
       tokenId: token.id,
+      sceneId: scene.id,
       actorId: token.actorId ?? null,
       hidden: Boolean(token.hidden),
     })),
@@ -121,6 +123,16 @@ async function addPendingCombatantsAndRoll(
   return createdIds.length;
 }
 
+function getSourceSceneForCombat(
+  combat: foundry.documents.Combat,
+): foundry.documents.Scene | null {
+  const sourceSceneId = combat.getFlag(moduleId, COMBAT_MANAGER_COMBAT_FLAG_KEY);
+  if (typeof sourceSceneId === "string" && sourceSceneId.trim().length > 0) {
+    return game.scenes?.get(sourceSceneId) ?? null;
+  }
+  return combat.scene instanceof foundry.documents.Scene ? combat.scene : null;
+}
+
 const allowNextRoundAdvance = new Set<string>();
 const processingRoundAdvance = new Set<string>();
 
@@ -141,9 +153,8 @@ export function registerCombatManagerHooks(): void {
     if (!Number.isFinite(targetRound)) return;
     if (targetRound <= currentRound) return;
 
-    const scene = combatDoc.scene;
-    if (!scene) return;
-    const currentScene = scene;
+    const currentScene = getSourceSceneForCombat(combatDoc);
+    if (!currentScene) return;
 
     const config = getSceneCombats(currentScene).find(
       (entry) => entry.combatId === combatDoc.id,
@@ -164,6 +175,7 @@ export function registerCombatManagerHooks(): void {
       try {
         const addedCount = await addPendingCombatantsAndRoll(
           combatDoc,
+          currentScene,
           pending,
         );
         if (addedCount > 0) {

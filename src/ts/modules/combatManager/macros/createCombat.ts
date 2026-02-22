@@ -1,7 +1,10 @@
 import { EncounterPF2e } from "foundry-pf2e";
 import { moduleId } from "../../../constants";
 import { validate } from "../../../helpers/validation";
-import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
+import {
+  COMBAT_MANAGER_COMBAT_FLAG_KEY,
+  COMBAT_MANAGER_FLAG_KEY,
+} from "../constants";
 import {
   getCurrentDiceRollSetting,
   setDiceRollsTo,
@@ -109,7 +112,18 @@ function getExistingAssociatedCombat(
   if (!combat.combatId) return null;
   const existing = game.combats?.get(combat.combatId);
   if (!existing) return null;
-  if (existing.scene?.id !== scene.id) return null;
+  const sourceSceneId = existing.getFlag(
+    moduleId,
+    COMBAT_MANAGER_COMBAT_FLAG_KEY,
+  );
+  if (typeof sourceSceneId === "string" && sourceSceneId !== scene.id) return null;
+  if (
+    sourceSceneId === undefined &&
+    existing.scene?.id &&
+    existing.scene.id !== scene.id
+  ) {
+    return null;
+  }
   return existing;
 }
 
@@ -158,7 +172,11 @@ export async function createCombat(input: Input): Promise<void> {
   }
 
   const createdCombat = await foundry.documents.Combat.create({
-    scene: scene.id,
+    flags: {
+      [moduleId]: {
+        [COMBAT_MANAGER_COMBAT_FLAG_KEY]: scene.id,
+      },
+    },
   });
   if (!createdCombat || Array.isArray(createdCombat)) {
     ui.notifications.error("Failed to create combat encounter.");
@@ -169,6 +187,7 @@ export async function createCombat(input: Input): Promise<void> {
     "Combatant",
     tokenDocuments.map((token) => ({
       tokenId: token.id,
+      sceneId: scene.id,
       actorId: token.actor?.id ?? null,
       hidden: Boolean(token.hidden),
     })),
