@@ -14,6 +14,10 @@ import {
 } from "./journalEditorEnhancements";
 import { numberTrackerMacros } from "./numberTracker";
 import {
+  registerPauseTweaksModule,
+  unregisterPauseTweaksModule,
+} from "./pauseTweaks";
+import {
   registerRollResolverModule,
   unregisterRollResolverModule,
 } from "./rollResolver";
@@ -38,6 +42,7 @@ export function registerModules() {
   registerDiceSoNiceModule();
   registerHideDeadModule();
   registerJournalEditorEnhancementsModule();
+  registerPauseTweaksModule();
   registerRollResolverModule();
   registerWindowManagerModule();
   registerWindowResizerModule();
@@ -48,6 +53,7 @@ export function unregisterModules() {
   unregisterDiceSoNiceModule();
   unregisterHideDeadModule();
   unregisterJournalEditorEnhancementsModule();
+  unregisterPauseTweaksModule();
   unregisterRollResolverModule();
   unregisterWindowManagerModule();
   unregisterWindowResizerModule();
