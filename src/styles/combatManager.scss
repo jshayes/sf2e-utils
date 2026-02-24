@@ -140,6 +140,26 @@
   text-align: center;
 }
 
+.combat-manager .combat-manager-list .threat-trivial {
+  color: aqua;
+}
+
+.combat-manager .combat-manager-list .threat-low {
+  color: green;
+}
+
+.combat-manager .combat-manager-list .threat-moderate {
+  color: yellow;
+}
+
+.combat-manager .combat-manager-list .threat-severe {
+  color: orange;
+}
+
+.combat-manager .combat-manager-list .threat-extreme {
+  color: red;
+}
+
 span.sf2e-start-combat {
   background: var(--content-link-background);
   border: 1px solid var(--content-link-border-color);
@@ -150,17 +170,6 @@ span.sf2e-start-combat {
   white-space: nowrap;
   word-break: break-all;
 }
-
-/* a.sf2e-enricher { */
-/*   background: var(--content-link-background); */
-/*   border: 1px solid var(--content-link-border-color); */
-/*   border-radius: 2px; */
-/*   box-sizing: border-box; */
-/*   color: var(--content-link-text-color); */
-/*   padding: 0 var(--space-4); */
-/*   white-space: nowrap; */
-/*   word-break: break-all; */
-/* } */
 
 a.sf2e-start-combat {
   background: var(--content-link-background);

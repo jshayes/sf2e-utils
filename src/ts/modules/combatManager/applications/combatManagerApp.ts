@@ -1,7 +1,9 @@
+import { TokenDocumentPF2e, TokenPF2e } from "foundry-pf2e";
 import { moduleId } from "../../../constants";
 import { HooksManager } from "../../../helpers/hooks";
 import { COMBAT_MANAGER_FLAG_KEY } from "../constants";
 import { createCombat } from "../macros/createCombat";
+import { getCombatXP } from "../utils";
 
 type CombatantEntry = {
   id: string;
@@ -83,6 +85,20 @@ function parseInteger(value: unknown, fallback = 0): number {
   return Number.parseInt(text, 10);
 }
 
+function getCombatSeverity(combat: CombatEntry) {
+  const scene = canvas.scene;
+  if (!scene) return "trivial";
+
+  const combatants = combat.combatants
+    .map((x) => scene.tokens.get(x.id))
+    .filter((x): x is TokenDocumentPF2e<any> => !!x)
+    .map((x) => x.object)
+    .filter((x): x is TokenPF2e => !!x);
+
+  const xpBudget = getCombatXP(combatants);
+  return xpBudget.rating;
+}
+
 const CombatManagerAppBase =
   foundry.applications.api.HandlebarsApplicationMixin(
     foundry.applications.api.ApplicationV2,
@@ -156,12 +172,19 @@ export class CombatManagerApp extends CombatManagerAppBase {
       ...context,
       combatName: this.#combatName,
       canAddCombat: this.#canAddCombat(),
-      combats: this.#combats.map((combat, index) => ({
-        index,
-        name: combat.name,
-        combatantCount: combat.combatants.length,
-        isSelected: this.#selectedCombatIndex === index,
-      })),
+      combats: this.#combats.map((combat, index) => {
+        const severity = getCombatSeverity(combat);
+        return {
+          index,
+          name: combat.name,
+          combatantCount: combat.combatants.length,
+          isSelected: this.#selectedCombatIndex === index,
+          severity,
+          severityLabel: game.i18n.localize(
+            `PF2E.Encounter.Budget.Threats.${severity}`,
+          ),
+        };
+      }),
       hasCombats: this.#combats.length > 0,
       hasSelectedCombat: selectedCombat !== null,
       selectedCombatName: selectedCombat?.name ?? "",
