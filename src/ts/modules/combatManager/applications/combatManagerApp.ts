@@ -298,6 +298,13 @@ export class CombatManagerApp extends CombatManagerAppBase {
     for (const row of Array.from(
       root.querySelectorAll<HTMLElement>("[data-action='select-combat']"),
     )) {
+      row.addEventListener("dragstart", (event) => this.#onCombatDragStart(event, row));
+      row.addEventListener("dragend", () => this.#clearCombatDragOverClasses());
+      row.addEventListener("dragover", (event) => this.#onCombatDragOver(event, row));
+      row.addEventListener("dragleave", () => {
+        row.classList.remove("is-drag-over");
+      });
+      row.addEventListener("drop", (event) => void this.#onCombatDrop(event, row));
       row.addEventListener("click", () => {
         const index = parseInteger(row.dataset.index, -1);
         if (index < 0) return;
@@ -422,6 +429,62 @@ export class CombatManagerApp extends CombatManagerAppBase {
     ) {
       this.#selectedCombatIndex -= 1;
     }
+    await this.#saveCombatsToScene();
+    await this.render();
+  }
+
+  #onCombatDragStart(event: DragEvent, row: HTMLElement): void {
+    const index = parseInteger(row.dataset.index, -1);
+    if (index < 0) return;
+    const transfer = event.dataTransfer;
+    if (!transfer) return;
+    transfer.effectAllowed = "move";
+    transfer.setData("text/plain", String(index));
+  }
+
+  #onCombatDragOver(event: DragEvent, row: HTMLElement): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "move";
+    }
+    this.#clearCombatDragOverClasses();
+    row.classList.add("is-drag-over");
+  }
+
+  async #onCombatDrop(event: DragEvent, row: HTMLElement): Promise<void> {
+    event.preventDefault();
+    const transfer = event.dataTransfer;
+    if (!transfer) return;
+
+    const fromIndex = parseInteger(transfer.getData("text/plain"), -1);
+    const toIndex = parseInteger(row.dataset.index, -1);
+    this.#clearCombatDragOverClasses();
+
+    if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return;
+    if (fromIndex >= this.#combats.length || toIndex >= this.#combats.length) return;
+
+    const [movedCombat] = this.#combats.splice(fromIndex, 1);
+    if (!movedCombat) return;
+    this.#combats.splice(toIndex, 0, movedCombat);
+
+    if (this.#selectedCombatIndex !== null) {
+      if (this.#selectedCombatIndex === fromIndex) {
+        this.#selectedCombatIndex = toIndex;
+      } else if (fromIndex < toIndex) {
+        if (
+          this.#selectedCombatIndex > fromIndex &&
+          this.#selectedCombatIndex <= toIndex
+        ) {
+          this.#selectedCombatIndex -= 1;
+        }
+      } else if (
+        this.#selectedCombatIndex >= toIndex &&
+        this.#selectedCombatIndex < fromIndex
+      ) {
+        this.#selectedCombatIndex += 1;
+      }
+    }
+
     await this.#saveCombatsToScene();
     await this.render();
   }
@@ -556,6 +619,16 @@ export class CombatManagerApp extends CombatManagerAppBase {
     if (!root.isConnected) return;
     if (!(root.parentElement instanceof HTMLElement)) return;
     await this.render();
+  }
+
+  #clearCombatDragOverClasses(): void {
+    const root = this.element;
+    if (!(root instanceof HTMLElement)) return;
+    for (const row of Array.from(
+      root.querySelectorAll<HTMLElement>(".combat-manager-row.is-drag-over"),
+    )) {
+      row.classList.remove("is-drag-over");
+    }
   }
 
   #hasCombatWithName(name: string, ignoreIndex: number | null = null): boolean {
