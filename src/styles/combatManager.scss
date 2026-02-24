@@ -31,6 +31,15 @@
   gap: 0.25rem;
 }
 
+.combat-manager .combat-manager-metrics {
+  align-items: center;
+  column-gap: 0;
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: 5.5rem 3rem;
+  margin-right: 0.5rem;
+}
+
 .combat-manager .combat-manager-name {
   flex: 1;
   min-width: 0;
@@ -43,6 +52,13 @@
   color: var(--color-text-dark-secondary);
   flex-shrink: 0;
   font-size: var(--font-size-12);
+  text-align: left;
+}
+
+.combat-manager .combat-manager-threat {
+  font-size: var(--font-size-12);
+  text-align: left;
+  white-space: nowrap;
 }
 
 .combat-manager .combat-manager-icon-button {
@@ -145,7 +161,7 @@
 }
 
 .combat-manager .combat-manager-list .threat-low {
-  color: green;
+  color: lime;
 }
 
 .combat-manager .combat-manager-list .threat-moderate {
