@@ -1,5 +1,6 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import { defineConfig, type Plugin } from "vite";
 
 const moduleId = "sf2e-utils";
@@ -110,5 +111,5 @@ export default defineConfig(({ mode }) => ({
       cssFileName: "style",
     },
   },
-  plugins: [copyFoundryFiles()],
+  plugins: [svelte(), copyFoundryFiles()],
 }));

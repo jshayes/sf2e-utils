@@ -22,6 +22,11 @@ import {
   unregisterRollResolverModule,
 } from "./rollResolver";
 import {
+  radialMenuMacros,
+  registerRadialMenuModule,
+  unregisterRadialMenuModule,
+} from "./radialMenu";
+import {
   registerWindowManagerModule,
   unregisterWindowManagerModule,
   windowManagerMacros,
@@ -34,6 +39,7 @@ import {
 export const moduleMacros = {
   combatManager: combatManagerMacros,
   numberTracker: numberTrackerMacros,
+  radialMenu: radialMenuMacros,
   windowManager: windowManagerMacros,
 };
 
@@ -43,6 +49,7 @@ export function registerModules() {
   registerHideDeadModule();
   registerJournalEditorEnhancementsModule();
   registerPauseTweaksModule();
+  registerRadialMenuModule();
   registerRollResolverModule();
   registerWindowManagerModule();
   registerWindowResizerModule();
@@ -54,6 +61,7 @@ export function unregisterModules() {
   unregisterHideDeadModule();
   unregisterJournalEditorEnhancementsModule();
   unregisterPauseTweaksModule();
+  unregisterRadialMenuModule();
   unregisterRollResolverModule();
   unregisterWindowManagerModule();
   unregisterWindowResizerModule();

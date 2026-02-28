@@ -16,8 +16,10 @@
   },
   "devDependencies": {
     "@foundryvtt/foundryvtt-cli": "^3.0.3",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "foundry-pf2e": "github:7H3LaughingMan/foundry-pf2e#v13",
     "sass": "^1.54.8",
+    "svelte": "^5.53.5",
     "tsx": "^4.20.5",
     "typescript": "5.9.3",
     "vite": "^7.1.4"
