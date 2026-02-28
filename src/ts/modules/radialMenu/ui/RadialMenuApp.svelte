@@ -21,6 +21,8 @@
   }
 
   const slots = buildSlots(14, 160);
+  let isCollapsing = $state(false);
+  let selectedSlotId = $state<string | null>(null);
 
   let {
     title = "Radial Menu",
@@ -29,20 +31,30 @@
     title?: string;
     onClose?: () => void;
   }>();
+
+  function handleSlotClick(slotId: string): void {
+    if (isCollapsing) return;
+    selectedSlotId = slotId;
+    isCollapsing = true;
+  }
 </script>
 
 <div class="radial-menu-shell">
   <div class="radial-menu-stage">
     <div class="radial-menu-center">Menu</div>
 
-    {#each slots as slot (slot.id)}
-      <button
-        type="button"
-        class="radial-menu-slot"
-        style={`--slot-x: ${slot.x}px; --slot-y: ${slot.y}px;`}
-      >
-        {slot.label}
-      </button>
-    {/each}
+    <div class:radial-menu-ring-collapsing={isCollapsing} class="radial-menu-ring">
+      {#each slots as slot (slot.id)}
+        <button
+          type="button"
+          class:selected={selectedSlotId === slot.id}
+          class="radial-menu-slot"
+          style={`--slot-x: ${slot.x}px; --slot-y: ${slot.y}px;`}
+          onclick={() => handleSlotClick(slot.id)}
+        >
+          {slot.label}
+        </button>
+      {/each}
+    </div>
   </div>
 </div>
