@@ -39,7 +39,7 @@
   }
 </script>
 
-<div class="radial-menu-shell">
+<div class="radial-menu-shell" onclick={onClose}>
   <div class="radial-menu-stage">
     <div class="radial-menu-center">Menu</div>
 
@@ -50,7 +50,10 @@
           class:selected={selectedSlotId === slot.id}
           class="radial-menu-slot"
           style={`--slot-x: ${slot.x}px; --slot-y: ${slot.y}px;`}
-          onclick={() => handleSlotClick(slot.id)}
+          onclick={(event) => {
+            event.stopPropagation();
+            handleSlotClick(slot.id);
+          }}
         >
           {slot.label}
         </button>
