@@ -10,14 +10,36 @@
   isolation: isolate;
 }
 
-.radial-menu-ring {
-  --ring-distance: 1;
-  --slot-scale: 1;
+.radial-menu-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 104px;
+  height: 104px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  background: rgb(6 10 18 / 88%);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 6%),
+    0 18px 48px rgb(0 0 0 / 45%);
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   pointer-events: none;
+}
+
+.radial-menu-ring {
   position: absolute;
   inset: 0;
-  opacity: 1;
-  transition: opacity 360ms ease;
+  pointer-events: none;
+}
+
+.radial-menu-ring-outer {
 }
 
 .radial-menu-slot {
@@ -25,47 +47,88 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 58px;
-  height: 58px;
-  border: 1px solid var(--color-border-light-primary);
-  border-radius: 50%;
-  transform: translate(
-      calc(-50% + (var(--slot-x) * var(--ring-distance))),
-      calc(-50% + (var(--slot-y) * var(--ring-distance)))
-    )
-    scale(var(--slot-scale));
+  transform: translate(calc(-50% + var(--slot-x)), calc(-50% + var(--slot-y)));
   display: grid;
   place-items: center;
-  background: rgb(0 0 0 / 63%);
+  gap: 0.35rem;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 999px;
+  background: rgb(7 12 21 / 78%);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 4%),
+    0 14px 30px rgb(0 0 0 / 32%);
   backdrop-filter: blur(10px);
   color: var(--color-text-primary);
   cursor: pointer;
   transition:
-    transform 360ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    background 160ms ease;
+    transform 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
-.radial-menu-slot:hover {
-  background: var(--color-bg-option);
+.radial-menu-slot:hover,
+.radial-menu-slot.selected {
+  background: rgb(36 54 86 / 88%);
+  border-color: rgb(255 255 255 / 28%);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 8%),
+    0 18px 36px rgb(0 0 0 / 40%);
 }
 
-.radial-menu-ring.radial-menu-ring-collapsing {
-  --ring-distance: 0.65;
-  --slot-scale: 0.7;
+.radial-menu-slot:focus-visible {
+  outline: 2px solid rgb(140 182 255 / 85%);
+  outline-offset: 2px;
 }
 
-.radial-menu-ring.radial-menu-ring-hidden {
-  --ring-distance: 0.65;
-  --slot-scale: 0.7;
-  opacity: 0;
-  pointer-events: none;
+.radial-menu-slot-inner {
+  width: 72px;
+  height: 72px;
+  padding: 0.5rem;
+  z-index: 2;
 }
 
-.radial-menu-ring.radial-menu-ring-closing {
-  opacity: 0;
-  pointer-events: none;
+.radial-menu-slot-outer {
+  width: 52px;
+  height: 52px;
+  padding: 0.4rem;
+  font-size: 0.72rem;
+  z-index: 1;
+  animation: radial-menu-fan-out 180ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--fan-delay, 0ms);
 }
 
-.radial-menu-ring.radial-menu-ring-opening {
-  opacity: 0;
+.radial-menu-slot-outer-2 {
+  background: rgb(8 15 26 / 74%);
+}
+
+.radial-menu-slot-image {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.radial-menu-slot span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes radial-menu-fan-out {
+  from {
+    opacity: 0;
+    transform: translate(
+        calc(-50% + var(--origin-x)),
+        calc(-50% + var(--origin-y))
+      )
+      scale(0.72);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--slot-x)), calc(-50% + var(--slot-y)))
+      scale(1);
+  }
 }

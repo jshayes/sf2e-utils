@@ -23,7 +23,6 @@ function ensureContainer(): HTMLDivElement {
   const blocker = document.createElement("div");
   blocker.style.position = "absolute";
   blocker.style.inset = "0";
-  blocker.style.background = "rgb(0 0 0 / 30%)";
   blocker.style.pointerEvents = "auto";
   blocker.addEventListener("click", () => {
     closeRadialMenuApp();
