@@ -1,3 +1,4 @@
+import { ActorPF2e } from "foundry-pf2e";
 import { moduleId } from "../../../constants";
 import { HooksManager } from "../../../helpers/hooks";
 
@@ -51,20 +52,46 @@ async function clearDeadStyle(tokenDoc: TokenDocument): Promise<void> {
   await tokenDoc.unsetFlag(moduleId, FLAG_SCOPE);
 }
 
+function actorIsDead(actor: ActorPF2e): boolean {
+  const hp = actor.system.attributes.hp;
+  if (!hp) return false;
+
+  const value = Number(hp.value ?? 0);
+  const max = Number(hp.max ?? 0);
+
+  return max > 0 && value <= 0;
+}
+
+function actorDeathStateChanged(
+  changed: DeepPartial<ActorPF2e["_source"]>,
+): boolean {
+  return (
+    foundry.utils.getProperty(changed, "system.attributes.hp.value") !==
+      undefined ||
+    foundry.utils.getProperty(changed, "system.attributes.hp.max") !==
+      undefined ||
+    foundry.utils.getProperty(changed, "statuses") !== undefined
+  );
+}
+
 const hooks = new HooksManager();
 export function registerHideDeadHooks(): void {
-  hooks.on("updateCombatant", async (combatant, changed) => {
+  hooks.on("updateActor", async (actor: ActorPF2e, changed) => {
     if (!game.user.isGM) return;
-    if (changed.defeated === undefined) return;
+    if (!actorDeathStateChanged(changed)) return;
 
-    const tokenId = String(combatant.tokenId ?? "");
-    const tokenDoc = combatant.token ?? canvas.scene?.tokens.get(tokenId);
-    if (!tokenDoc) return;
+    const tokenDocs = canvas.scene?.tokens.filter(
+      (tokenDoc) => tokenDoc.actor?.id === actor.id,
+    );
+    if (!tokenDocs?.length) return;
 
-    if (combatant.defeated) {
-      await applyDeadStyle(tokenDoc);
-    } else {
-      await clearDeadStyle(tokenDoc);
+    for (const tokenDoc of tokenDocs) {
+      if (actorIsDead(actor)) {
+        console.log("dead");
+        await applyDeadStyle(tokenDoc);
+      } else {
+        await clearDeadStyle(tokenDoc);
+      }
     }
   });
 }
