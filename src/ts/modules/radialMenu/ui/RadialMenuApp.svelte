@@ -1,34 +1,17 @@
 <script lang="ts">
+    import { moduleId } from "../../../constants";
+    import { flagKey } from "../constants";
     import "./RadialMenuApp.css";
 
-    type Macro = {
-        id: string;
-        label: string;
-        image?: string;
-    };
-
+    type Macro = foundry.documents.Macro;
     type MacroSlot = {
         image: string;
         label: string;
+        folder: foundry.documents.Folder;
         macros: Macro[];
     };
 
-    type MacroWheel = {
-        slot1?: MacroSlot;
-        slot2?: MacroSlot;
-        slot3?: MacroSlot;
-        slot4?: MacroSlot;
-        slot5?: MacroSlot;
-        slot6?: MacroSlot;
-        slot7?: MacroSlot;
-        slot8?: MacroSlot;
-        slot9?: MacroSlot;
-        slot10?: MacroSlot;
-        slot11?: MacroSlot;
-        slot12?: MacroSlot;
-        slot13?: MacroSlot;
-        slot14?: MacroSlot;
-    };
+    type MacroRadialMenu = MacroSlot[];
 
     type InnerSlot = {
         id: string;
@@ -38,13 +21,13 @@
         angle: number;
         x: number;
         y: number;
+        folder: foundry.documents.Folder;
         macros: Macro[];
     };
 
     type OuterMacroSlot = {
         id: string;
-        label: string;
-        image?: string;
+        macro: Macro;
         x: number;
         y: number;
         index: number;
@@ -57,57 +40,6 @@
     const outerRingBaseRadius = 230;
     const maxOuterRings = 4;
 
-    const macroWheel: MacroWheel = {
-        slot1: {
-            image: "",
-            label: "Actions",
-            macros: Array.from({ length: 10 }, (_, index) => ({
-                id: `action-${index + 1}`,
-                label: `Action ${index + 1}`,
-            })),
-        },
-        slot3: {
-            image: "",
-            label: "Effects",
-            macros: Array.from({ length: 80 }, (_, index) => ({
-                id: `effect-${index + 1}`,
-                label: `E${index + 1}`,
-            })),
-        },
-        slot6: {
-            image: "",
-            label: "Spells",
-            macros: Array.from({ length: 7 }, (_, index) => ({
-                id: `spell-${index + 1}`,
-                label: `Spell ${index + 1}`,
-            })),
-        },
-        slot10: {
-            image: "",
-            label: "Utility",
-            macros: Array.from({ length: 5 }, (_, index) => ({
-                id: `utility-${index + 1}`,
-                label: `Tool ${index + 1}`,
-            })),
-        },
-        slot11: {
-            image: "",
-            label: "Utility",
-            macros: Array.from({ length: 5 }, (_, index) => ({
-                id: `utility-${index + 1}`,
-                label: `Tool ${index + 1}`,
-            })),
-        },
-        slot12: {
-            image: "",
-            label: "Utility",
-            macros: Array.from({ length: 5 }, (_, index) => ({
-                id: `utility-${index + 1}`,
-                label: `Tool ${index + 1}`,
-            })),
-        },
-    };
-
     function polarToCartesian(radius: number, angle: number) {
         return {
             x: Math.cos(angle - Math.PI / 2) * radius,
@@ -115,20 +47,20 @@
         };
     }
 
-    function buildInnerSlots(wheel: MacroWheel): InnerSlot[] {
-        const slots = Object.entries(wheel);
-        return slots.map(([key, slot], index) => {
+    function buildInnerSlots(slots: MacroRadialMenu): InnerSlot[] {
+        return slots.map((slot, index) => {
             const angle = (Math.PI * 2 * index) / slots.length;
             const { x, y } = polarToCartesian(innerRadius, angle);
 
             return {
-                id: key,
-                key,
+                id: String(index),
+                key: String(index),
                 label: slot.label || `${index + 1}`,
                 image: slot.image,
                 angle,
                 x,
                 y,
+                folder: slot.folder,
                 macros: slot.macros,
             };
         });
@@ -161,8 +93,7 @@
 
                 return {
                     id: macro.id,
-                    label: macro.label,
-                    image: macro.image,
+                    macro,
                     x,
                     y,
                     index,
@@ -171,8 +102,39 @@
             });
     }
 
+    function getMacrosForFolder(folder: foundry.documents.Folder) {
+        return game.macros.filter((x) => x.folder?.id === folder.id);
+    }
+
+    function getSlots(): MacroSlot[] {
+        const configuredSlots = game.user.getFlag(moduleId, flagKey);
+        if (!Array.isArray(configuredSlots) || configuredSlots.length === 0)
+            return [];
+
+        return configuredSlots
+            .map((slot) => {
+                const folder = game.folders.get(slot.folder);
+                if (!folder) return;
+
+                const macros = getMacrosForFolder(folder);
+
+                return {
+                    image: slot.image,
+                    label: folder.name,
+                    folder,
+                    macros,
+                };
+            })
+            .filter(<T,>(x: T | undefined): x is T => !!x);
+    }
+
+    const macroWheel = $derived(getSlots());
+
     const innerSlots = buildInnerSlots(macroWheel);
     let activeInnerSlotId = $state<string | null>(null);
+    let tooltipText = $state<string | null>(null);
+    let tooltipX = $state(0);
+    let tooltipY = $state(0);
 
     let { title = "Radial Menu", onClose = () => {} } = $props<{
         title?: string;
@@ -200,6 +162,22 @@
 
     function handleInnerSlotEnter(slotId: string): void {
         activeInnerSlotId = slotId;
+    }
+
+    function showTooltip(label: string, event: MouseEvent): void {
+        tooltipText = label;
+        tooltipX = event.clientX;
+        tooltipY = event.clientY;
+    }
+
+    function moveTooltip(event: MouseEvent): void {
+        if (!tooltipText) return;
+        tooltipX = event.clientX;
+        tooltipY = event.clientY;
+    }
+
+    function hideTooltip(): void {
+        tooltipText = null;
     }
 
     function handleMacroClick(macro: Macro): void {
@@ -253,8 +231,19 @@
                     type="button"
                     class:selected={activeInnerSlotId === slot.id}
                     class="radial-menu-slot radial-menu-slot-inner"
-                    style={`--slot-x: ${slot.x}px; --slot-y: ${slot.y}px;`}
-                    onmouseenter={() => handleInnerSlotEnter(slot.id)}
+                    style={`
+                        --slot-x: ${slot.x}px;
+                        --slot-y: ${slot.y}px;
+                        --background-colour: ${(slot.folder.color?.r ?? 0) * 128}
+                        ${(slot.folder.color?.g ?? 0) * 128}
+                        ${(slot.folder.color?.b ?? 0) * 128};
+                    `}
+                    onmouseenter={(event) => {
+                        handleInnerSlotEnter(slot.id);
+                        showTooltip(slot.label, event);
+                    }}
+                    onmousemove={moveTooltip}
+                    onmouseleave={hideTooltip}
                     onclick={(event) => {
                         event.stopPropagation();
                         handleInnerSlotEnter(slot.id);
@@ -266,8 +255,9 @@
                             alt=""
                             class="radial-menu-slot-image"
                         />
+                    {:else}
+                        <span>{slot.label}</span>
                     {/if}
-                    <span>{slot.label}</span>
                 </button>
             {/each}
         </div>
@@ -291,27 +281,38 @@
                                 --origin-y: ${activeInnerSlot.y}px;
                                 --fan-delay: ${getFanoutDelay(outerMacroSlots, macro.index)}ms;
                             `}
+                            onmouseenter={(event) => {
+                                showTooltip(macro.macro.name, event);
+                            }}
+                            onmousemove={moveTooltip}
+                            onmouseleave={hideTooltip}
                             onclick={(event) => {
                                 event.stopPropagation();
-                                handleMacroClick({
-                                    id: macro.id,
-                                    label: macro.label,
-                                    image: macro.image,
-                                });
+                                handleMacroClick(macro.macro);
                             }}
                         >
-                            {#if macro.image}
+                            {#if macro.macro.img}
                                 <img
-                                    src={macro.image}
+                                    src={macro.macro.img}
                                     alt=""
                                     class="radial-menu-slot-image"
                                 />
+                            {:else}
+                                <span>{macro.macro.name}</span>
                             {/if}
-                            <span>{macro.label}</span>
                         </button>
                     {/each}
                 </div>
             {/key}
         {/if}
     </div>
+
+    {#if tooltipText}
+        <div
+            class="radial-menu-tooltip"
+            style={`left: ${tooltipX}px; top: ${tooltipY}px;`}
+        >
+            {tooltipText}
+        </div>
+    {/if}
 </div>

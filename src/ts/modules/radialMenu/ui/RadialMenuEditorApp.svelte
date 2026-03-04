@@ -1,5 +1,6 @@
 <script lang="ts">
   import { moduleId } from "../../../constants";
+  import { flagKey } from "../constants";
   import "./RadialMenuEditorApp.css";
 
   type EditorRow = {
@@ -12,8 +13,6 @@
     folder: string;
     image?: string;
   };
-
-  const flagKey = "radial-menu.rows";
 
   function createEmptyRow(id: number): EditorRow {
     return {
@@ -186,10 +185,7 @@
   </div>
 
   <div class="radial-menu-editor-toolbar">
-    <button
-      type="button"
-      onclick={() => void saveRows()}
-    >
+    <button type="button" onclick={() => void saveRows()}>
       <i class="fa-solid fa-floppy-disk"></i>
       Save
     </button>
