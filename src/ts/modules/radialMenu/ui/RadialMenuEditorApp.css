@@ -1,0 +1,64 @@
+.radial-menu-editor-shell,
+.radial-menu-editor-app {
+  height: 100%;
+}
+
+.radial-menu-editor-app {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem;
+}
+
+.radial-menu-editor-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.radial-menu-editor-rows {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.5rem;
+  overflow: auto;
+}
+
+.radial-menu-editor-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  /* padding: 0.5rem 0; */
+  border-top: 1px solid var(--color-border-light-tertiary);
+}
+
+.radial-menu-editor-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.radial-menu-editor-folder-select {
+  min-width: 16rem;
+}
+
+.radial-menu-editor-image-fields {
+  flex: 1;
+}
+
+.radial-menu-editor-image-fields-contents {
+  display: flex;
+  flex-direction: row;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.radial-menu-editor-image-fields input {
+  flex: 1;
+  min-width: 0;
+}
+
+.radial-menu-editor-row > .form-group .form-fields {
+  flex: 1;
+  min-width: 0;
+}
