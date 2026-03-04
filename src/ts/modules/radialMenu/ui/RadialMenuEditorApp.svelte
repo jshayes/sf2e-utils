@@ -48,6 +48,7 @@
 
   let nextRowId = 2;
   let rows = $state<EditorRow[]>(getSavedRows());
+  let dragOverRowId = $state<number | null>(null);
   nextRowId = rows.length + 1;
 
   function addRow(): void {
@@ -69,6 +70,49 @@
     const index = rows.findIndex((row) => row.id === rowId);
     if (index === -1) return;
     rows.splice(index, 1);
+  }
+
+  function handleDragStart(event: DragEvent, rowId: number): void {
+    const transfer = event.dataTransfer;
+    if (!transfer) return;
+
+    transfer.effectAllowed = "move";
+    transfer.setData("text/plain", String(rowId));
+  }
+
+  function handleDragOver(event: DragEvent, rowId: number): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "move";
+    }
+    dragOverRowId = rowId;
+  }
+
+  function handleDragEnter(event: DragEvent, rowId: number): void {
+    event.preventDefault();
+    dragOverRowId = rowId;
+  }
+
+  function handleDrop(event: DragEvent, targetRowId: number): void {
+    event.preventDefault();
+    const transfer = event.dataTransfer;
+    if (!transfer) return;
+
+    const sourceRowId = Number(transfer.getData("text/plain"));
+    dragOverRowId = null;
+
+    if (!Number.isFinite(sourceRowId) || sourceRowId === targetRowId) return;
+
+    const sourceIndex = rows.findIndex((row) => row.id === sourceRowId);
+    const targetIndex = rows.findIndex((row) => row.id === targetRowId);
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const [movedRow] = rows.splice(sourceIndex, 1);
+    rows.splice(targetIndex, 0, movedRow);
+  }
+
+  function handleDragEnd(): void {
+    dragOverRowId = null;
   }
 
   async function browseImage(row: EditorRow): Promise<void> {
@@ -136,7 +180,28 @@
 
   <div class="radial-menu-editor-rows">
     {#each rows as row (row.id)}
-      <section class="radial-menu-editor-row">
+      <section
+        class:radial-menu-editor-row-drag-over={dragOverRowId === row.id}
+        class="radial-menu-editor-row"
+        ondragenter={(event) => handleDragEnter(event, row.id)}
+        ondragover={(event) => handleDragOver(event, row.id)}
+        ondrop={(event) => handleDrop(event, row.id)}
+      >
+        <div class="form-group radial-menu-editor-drag-handle-group">
+          <div class="form-fields">
+            <button
+              type="button"
+              class="radial-menu-editor-drag-handle"
+              draggable="true"
+              aria-label="Reorder row"
+              ondragstart={(event) => handleDragStart(event, row.id)}
+              ondragend={handleDragEnd}
+            >
+              <i class="fa-solid fa-grip-lines"></i>
+            </button>
+          </div>
+        </div>
+
         <div class="form-group">
           <div class="form-fields">
             <select
