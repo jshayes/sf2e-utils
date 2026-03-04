@@ -76,6 +76,13 @@
     rows.splice(index, 1);
   }
 
+  function updateRowFolder(rowId: number, folderId: string): void {
+    const row = rows.find((entry) => entry.id === rowId);
+    if (!row) return;
+    row.folderId = folderId;
+    rows = [...rows];
+  }
+
   function handleDragStart(event: DragEvent, rowId: number): void {
     const transfer = event.dataTransfer;
     if (!transfer) return;
@@ -146,10 +153,65 @@
     }
   }
 
+  function getFolder(id: string) {
+    const folder = game.folders.get(id);
+    if (folder && folder.type === "Macro") {
+      return folder;
+    }
+
+    return null;
+  }
+
+  function isFolderAlreadySelected(
+    folder: foundry.documents.BaseFolder,
+    selectedIds: Set<string>,
+  ) {
+    let f: foundry.documents.BaseFolder | null = folder;
+    while (f) {
+      if (selectedIds.has(f.id)) {
+        return true;
+      }
+      f = f.folder;
+    }
+
+    return false;
+  }
+
+  function getRowFolderOptions(row: EditorRow) {
+    const selectedFolderIds = new Set(
+      rows
+        .filter((otherRow) => otherRow.id !== row.id && otherRow.folderId)
+        .map((otherRow) => otherRow.folderId),
+    );
+
+    const options = folders.filter(
+      (folder) =>
+        folder.id === row.folderId ||
+        !isFolderAlreadySelected(folder, selectedFolderIds),
+    );
+
+    const selectedFolder = getFolder(row.folderId);
+
+    if (
+      selectedFolder &&
+      !options.some((option) => option.id === selectedFolder.id)
+    ) {
+      options.push(selectedFolder);
+    }
+
+    return options;
+  }
+
+  function getRowFolderOptionsKey(row: EditorRow): string {
+    return `${row.folderId}:${getRowFolderOptions(row)
+      .map((folder) => folder.id)
+      .join(",")}`;
+  }
+
   function getFolders() {
-    return game.folders
-      .filter((x) => x.type === "Macro")
-      .map((x) => ({ id: x.id, name: x.name }));
+    return game.folders.filter(
+      (x): x is foundry.documents.Folder => x.type === "Macro",
+    );
   }
 
   let folders = $state(getFolders());
@@ -209,19 +271,29 @@
 
         <div class="form-group">
           <div class="form-fields">
-            <select
-              id={`radial-menu-row-folder-${row.id}`}
-              class="radial-menu-editor-folder-select"
-              bind:value={row.folderId}
-              onfocus={refreshFolders}
-            >
-              <option value="">Select a folder</option>
-              {#each folders as folder (folder.id)}
-                <option value={folder.id}>
-                  {folder.name}
-                </option>
-              {/each}
-            </select>
+            {#key getRowFolderOptionsKey(row)}
+              <select
+                id={`radial-menu-row-folder-${row.id}`}
+                class="radial-menu-editor-folder-select"
+                value={row.folderId}
+                onfocus={refreshFolders}
+                onchange={(event) =>
+                  updateRowFolder(
+                    row.id,
+                    (event.currentTarget as HTMLSelectElement).value,
+                  )}
+              >
+                <option value="">Select a folder</option>
+                {#each getRowFolderOptions(row) as folder (folder.id)}
+                  <option
+                    value={folder.id}
+                    selected={folder.id === row.folderId}
+                  >
+                    {folder.name}
+                  </option>
+                {/each}
+              </select>
+            {/key}
           </div>
         </div>
 
