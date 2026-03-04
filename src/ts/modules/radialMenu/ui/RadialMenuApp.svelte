@@ -28,6 +28,7 @@
 
     type OuterMacroSlot = {
         id: string;
+        folder: Folder;
         macro: Macro;
         x: number;
         y: number;
@@ -75,7 +76,17 @@
             return [];
         }
 
-        return macros
+        return [...macros]
+            .sort((a, b) => {
+                const aFolder = a.folder as Folder;
+                const bFolder = b.folder as Folder;
+
+                if (aFolder.id !== bFolder.id)
+                    return aFolder.sort - bFolder.sort;
+
+                if (aFolder.sorting === "m") return a.sort - b.sort;
+                return a.name.localeCompare(b.name);
+            })
             .slice(0, slotsPerWheel * maxOuterRings)
             .map((macro, index) => {
                 const ringIndex = Math.floor(index / slotsPerWheel);
@@ -95,6 +106,7 @@
                 return {
                     id: macro.id,
                     macro,
+                    folder: macro.folder as Folder,
                     x,
                     y,
                     index,
@@ -296,9 +308,9 @@
                                 --origin-x: ${activeInnerSlot.x}px;
                                 --origin-y: ${activeInnerSlot.y}px;
                                 --fan-delay: ${getFanoutDelay(outerMacroSlots, macro.index)}ms;
-                                --background-colour: ${(macro.macro.folder?.color?.r ?? 0) * 255}
-                                ${(macro.macro.folder?.color?.g ?? 0) * 255}
-                                ${(macro.macro.folder?.color?.b ?? 0) * 255};
+                                --background-colour: ${(macro.folder.color?.r ?? 0) * 255}
+                                ${(macro.folder.color?.g ?? 0) * 255}
+                                ${(macro.folder.color?.b ?? 0) * 255};
                             `}
                             onmouseenter={(event) => {
                                 showTooltip(macro.macro.name, event);
