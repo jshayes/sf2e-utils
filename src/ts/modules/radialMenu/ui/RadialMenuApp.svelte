@@ -180,8 +180,8 @@
         tooltipText = null;
     }
 
-    function handleMacroClick(macro: Macro): void {
-        console.log("macro clicked", macro);
+    async function handleMacroClick(macro: Macro): Promise<void> {
+        await macro.execute();
     }
 
     function handleStageLeave(event: MouseEvent): void {
