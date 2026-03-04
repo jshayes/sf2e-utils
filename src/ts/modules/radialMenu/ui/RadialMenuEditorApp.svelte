@@ -1,12 +1,43 @@
 <script lang="ts">
+  import { moduleId } from "../../../constants";
   import "./RadialMenuEditorApp.css";
 
   type EditorRow = {
     id: number;
-    label: string;
     image: string;
     folderId: string;
   };
+
+  type SavedRow = {
+    folder: string;
+    image?: string;
+  };
+
+  const flagKey = "radial-menu.rows";
+
+  function createEmptyRow(id: number): EditorRow {
+    return {
+      id,
+      image: "",
+      folderId: "",
+    };
+  }
+
+  function getSavedRows(): EditorRow[] {
+    const savedRows = game.user.getFlag(moduleId, flagKey);
+    if (!Array.isArray(savedRows) || savedRows.length === 0) {
+      return [createEmptyRow(1)];
+    }
+
+    return savedRows.slice(0, 14).map((row, index) => {
+      const value = row as Partial<SavedRow> | null | undefined;
+      return {
+        id: index + 1,
+        image: typeof value?.image === "string" ? value.image : "",
+        folderId: typeof value?.folder === "string" ? value.folder : "",
+      };
+    });
+  }
 
   type FilePickerConstructor = new (options: {
     type: "image";
@@ -17,14 +48,8 @@
   };
 
   let nextRowId = 2;
-  let rows = $state<EditorRow[]>([
-    {
-      id: 1,
-      label: "",
-      image: "",
-      folderId: "",
-    },
-  ]);
+  let rows = $state<EditorRow[]>(getSavedRows());
+  nextRowId = rows.length + 1;
 
   function addRow(): void {
     if (rows.length >= 14) {
@@ -36,7 +61,6 @@
 
     rows.push({
       id: nextRowId++,
-      label: "",
       image: "",
       folderId: "",
     });
@@ -85,6 +109,16 @@
 
   function refreshFolders(): void {
     folders = getFolders();
+  }
+
+  async function saveRows(): Promise<void> {
+    const savedRows: SavedRow[] = rows.map((row) => ({
+      folder: row.folderId,
+      image: row.image.trim() ? row.image.trim() : undefined,
+    }));
+
+    await game.user.setFlag(moduleId, flagKey, savedRows);
+    ui.notifications.info("Radial menu rows saved.");
   }
 </script>
 
@@ -154,9 +188,7 @@
   <div class="radial-menu-editor-toolbar">
     <button
       type="button"
-      onclick={addRow}
-      disabled={rows.length >= 14}
-      title={rows.length >= 14 ? "You can only have 14 rows" : undefined}
+      onclick={() => void saveRows()}
     >
       <i class="fa-solid fa-floppy-disk"></i>
       Save
