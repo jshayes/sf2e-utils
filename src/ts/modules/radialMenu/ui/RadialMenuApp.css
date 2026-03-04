@@ -71,8 +71,8 @@
 }
 
 .radial-menu-slot-inner {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   padding: 0.5rem;
   z-index: 2;
   background: rgb(var(--background-colour) / 60%);
