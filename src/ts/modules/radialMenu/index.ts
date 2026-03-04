@@ -6,6 +6,7 @@ import {
 import {
   closeRadialMenuEditorApp,
   openRadialMenuEditorApp,
+  RadialMenuEditorApplication,
 } from "./applications/radialMenuEditorApp";
 import { open } from "./macros/open";
 import { openEditor } from "./macros/openEditor";
@@ -16,6 +17,7 @@ export const radialMenuMacros = {
 };
 
 const OPEN_RADIAL_MENU_KEYBIND = "open-radial-menu";
+const RADIAL_MENU_EDITOR_SETTINGS_MENU = "radial-menu-editor";
 let isRadialMenuKeyListenerRegistered = false;
 
 function matchesBinding(
@@ -30,7 +32,6 @@ function matchesBinding(
 
 function shouldCloseForKeyup(event: KeyboardEvent): boolean {
   const bindings = game.keybindings.get(moduleId, OPEN_RADIAL_MENU_KEYBIND);
-  console.log({ bindings, event });
   return bindings.some((binding) => matchesBinding(event, binding));
 }
 
@@ -40,11 +41,7 @@ function registerRadialMenuKeyupListener(): void {
   document.addEventListener(
     "keyup",
     (event) => {
-      console.log("key up");
-      if (!shouldCloseForKeyup(event)) {
-        console.log("no");
-        return;
-      }
+      if (!shouldCloseForKeyup(event)) return;
       closeRadialMenuApp();
     },
     true,
@@ -59,7 +56,6 @@ function registerRadialMenuKeyupListener(): void {
 function registerRadialMenuKeybinding(): void {
   const keybindId = `${moduleId}.${OPEN_RADIAL_MENU_KEYBIND}`;
   const onDown = () => {
-    console.log("onDown");
     openRadialMenuApp();
     return true;
   };
@@ -80,7 +76,19 @@ function registerRadialMenuKeybinding(): void {
   });
 }
 
+function registerRadialMenuSettingsMenu(): void {
+  game.settings.registerMenu(moduleId, RADIAL_MENU_EDITOR_SETTINGS_MENU, {
+    name: "Configure Radial Menu",
+    label: "Open Editor",
+    hint: "Open the radial menu editor.",
+    icon: "fa-solid fa-compass-drafting",
+    type: RadialMenuEditorApplication,
+    restricted: false,
+  });
+}
+
 export function registerRadialMenuModule(): void {
+  registerRadialMenuSettingsMenu();
   registerRadialMenuKeybinding();
   registerRadialMenuKeyupListener();
 }
