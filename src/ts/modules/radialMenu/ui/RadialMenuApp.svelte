@@ -158,13 +158,13 @@
 
     const macroWheel = $derived(getSlots());
 
-    const innerSlots = buildInnerSlots(macroWheel);
+    const innerSlots = $derived(buildInnerSlots(macroWheel));
     let activeInnerSlotId = $state<string | null>(null);
     let tooltipText = $state<string | null>(null);
     let tooltipX = $state(0);
     let tooltipY = $state(0);
 
-    let { title = "Radial Menu", onClose = () => {} } = $props<{
+    let { title = "Radial Menu" } = $props<{
         title?: string;
         onClose?: () => void;
     }>();
@@ -239,20 +239,9 @@
     }
 </script>
 
-<div
-    role="button"
-    tabindex="0"
-    onkeypress={() => {}}
-    class="radial-menu-shell"
-    aria-label={title}
-    onclick={onClose}
->
-    <div
-        class="radial-menu-stage"
-        onmouseleave={handleStageLeave}
-        role="button"
-        tabindex="0"
-    >
+<div class="radial-menu-shell" aria-label={title}>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="radial-menu-stage" onpointerleave={handleStageLeave}>
         <div class="radial-menu-ring radial-menu-ring-inner">
             {#each innerSlots as slot (slot.id)}
                 <button

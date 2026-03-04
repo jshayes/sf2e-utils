@@ -2,12 +2,24 @@
   width: 100vw;
   min-height: 100vh;
   font-family: var(--font-primary);
+  position: relative;
+}
+
+.radial-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: default;
 }
 
 .radial-menu-stage {
   position: relative;
   min-height: 100vh;
   isolation: isolate;
+  z-index: 1;
 }
 
 .radial-menu-ring {
