@@ -79,6 +79,7 @@ export function registerHideDeadHooks(): void {
   hooks.on("updateActor", async (actor: ActorPF2e, changed) => {
     if (!game.user.isGM) return;
     if (!actorDeathStateChanged(changed)) return;
+    if (actor.hasPlayerOwner) return;
 
     const tokenDocs = canvas.scene?.tokens.filter(
       (tokenDoc) => tokenDoc.actor?.id === actor.id,
