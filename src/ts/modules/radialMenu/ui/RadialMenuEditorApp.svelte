@@ -14,6 +14,10 @@
     image?: string;
   };
 
+  let { onClose = async () => {} } = $props<{
+    onClose?: () => void | Promise<void>;
+  }>();
+
   function createEmptyRow(id: number): EditorRow {
     return {
       id,
@@ -162,6 +166,7 @@
 
     await game.user.setFlag(moduleId, flagKey, savedRows);
     ui.notifications.info("Radial menu rows saved.");
+    await onClose();
   }
 </script>
 
@@ -252,7 +257,7 @@
   <div class="radial-menu-editor-toolbar">
     <button type="button" onclick={() => void saveRows()}>
       <i class="fa-solid fa-floppy-disk"></i>
-      Save
+      Update
     </button>
   </div>
 </div>

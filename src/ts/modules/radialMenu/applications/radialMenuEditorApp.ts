@@ -53,6 +53,11 @@ export class RadialMenuEditorApplication extends RadialMenuEditorAppBase {
     this.#mountedRoot = target;
     this.#component = mount(RadialMenuEditorApp, {
       target,
+      props: {
+        onClose: () => {
+          void this.close();
+        },
+      },
     });
   }
 
