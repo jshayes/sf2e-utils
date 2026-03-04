@@ -4,6 +4,7 @@
     import "./RadialMenuApp.css";
 
     type Macro = foundry.documents.Macro;
+    type Folder = foundry.documents.Folder;
     type MacroSlot = {
         image: string;
         label: string;
@@ -21,7 +22,7 @@
         angle: number;
         x: number;
         y: number;
-        folder: foundry.documents.Folder;
+        folder: Folder;
         macros: Macro[];
     };
 
@@ -102,8 +103,23 @@
             });
     }
 
-    function getMacrosForFolder(folder: foundry.documents.Folder) {
-        return game.macros.filter((x) => x.folder?.id === folder.id);
+    function isFolderParentOf(
+        element: Macro | foundry.documents.BaseFolder,
+        folder: Folder,
+    ) {
+        if (!element.folder) return false;
+
+        const elementFolder = element.folder;
+        if (elementFolder.id === folder.id) return true;
+
+        if (elementFolder instanceof foundry.documents.BaseFolder)
+            return isFolderParentOf(elementFolder, folder);
+
+        return false;
+    }
+
+    function getMacrosForFolder(folder: Folder) {
+        return game.macros.filter((x) => isFolderParentOf(x, folder));
     }
 
     function getSlots(): MacroSlot[] {
@@ -234,9 +250,9 @@
                     style={`
                         --slot-x: ${slot.x}px;
                         --slot-y: ${slot.y}px;
-                        --background-colour: ${(slot.folder.color?.r ?? 0) * 128}
-                        ${(slot.folder.color?.g ?? 0) * 128}
-                        ${(slot.folder.color?.b ?? 0) * 128};
+                        --background-colour: ${(slot.folder.color?.r ?? 0) * 255}
+                        ${(slot.folder.color?.g ?? 0) * 255}
+                        ${(slot.folder.color?.b ?? 0) * 255};
                     `}
                     onmouseenter={(event) => {
                         handleInnerSlotEnter(slot.id);
@@ -280,6 +296,9 @@
                                 --origin-x: ${activeInnerSlot.x}px;
                                 --origin-y: ${activeInnerSlot.y}px;
                                 --fan-delay: ${getFanoutDelay(outerMacroSlots, macro.index)}ms;
+                                --background-colour: ${(macro.macro.folder?.color?.r ?? 0) * 255}
+                                ${(macro.macro.folder?.color?.g ?? 0) * 255}
+                                ${(macro.macro.folder?.color?.b ?? 0) * 255};
                             `}
                             onmouseenter={(event) => {
                                 showTooltip(macro.macro.name, event);
