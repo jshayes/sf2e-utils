@@ -1,3 +1,5 @@
+import { upperCaseFirst } from "./string";
+
 export type SkillOption = {
   slug: string;
   label: string;
@@ -19,7 +21,9 @@ export function getSkillOptions(): SkillOption[] {
   ).party?.members;
 
   const skills = new Set<string>(
-    (members ?? []).flatMap((member) => Object.keys(member.system?.skills ?? {})),
+    (members ?? []).flatMap((member) =>
+      Object.keys(member.system?.skills ?? {}),
+    ),
   );
 
   skills.add("flat");
@@ -31,10 +35,6 @@ export function getSkillOptions(): SkillOption[] {
   return Array.from(skills.values())
     .sort()
     .map((slug) => ({ slug, label: skillSlugToLabel(slug) }));
-}
-
-function upperCaseFirst(value: string): string {
-  return (value[0] ?? "").toUpperCase() + value.slice(1);
 }
 
 export function skillSlugToLabel(skill: string): string {

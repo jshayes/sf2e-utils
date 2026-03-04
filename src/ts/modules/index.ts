@@ -7,6 +7,10 @@ import {
   registerDiceSoNiceModule,
   unregisterDiceSoNiceModule,
 } from "./diceSoNice";
+import {
+  registerFoundryControlsModule,
+  unregisterFoundryControlsModule,
+} from "./foundryControls";
 import { registerHideDeadModule, unregisterHideDeadModule } from "./hideDead";
 import {
   registerJournalEditorEnhancementsModule,
@@ -53,6 +57,7 @@ export function registerModules() {
   registerRollResolverModule();
   registerWindowManagerModule();
   registerWindowResizerModule();
+  registerFoundryControlsModule();
 }
 
 export function unregisterModules() {
@@ -65,4 +70,5 @@ export function unregisterModules() {
   unregisterRollResolverModule();
   unregisterWindowManagerModule();
   unregisterWindowResizerModule();
+  unregisterFoundryControlsModule();
 }
