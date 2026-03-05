@@ -39,6 +39,7 @@ import {
   registerWindowResizerModule,
   unregisterWindowResizerModule,
 } from "./windowResizer";
+import { registerPlaylistModule, unregisterPlaylistModule } from "./playlist";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
@@ -58,6 +59,7 @@ export function registerModules() {
   registerWindowManagerModule();
   registerWindowResizerModule();
   registerFoundryControlsModule();
+  registerPlaylistModule();
 }
 
 export function unregisterModules() {
@@ -71,4 +73,5 @@ export function unregisterModules() {
   unregisterWindowManagerModule();
   unregisterWindowResizerModule();
   unregisterFoundryControlsModule();
+  unregisterPlaylistModule();
 }
