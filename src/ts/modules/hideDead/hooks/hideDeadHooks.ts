@@ -88,7 +88,6 @@ export function registerHideDeadHooks(): void {
 
     for (const tokenDoc of tokenDocs) {
       if (actorIsDead(actor)) {
-        console.log("dead");
         await applyDeadStyle(tokenDoc);
       } else {
         await clearDeadStyle(tokenDoc);
