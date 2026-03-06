@@ -4,9 +4,9 @@ import {
 } from "./hooks/hideDeadHooks";
 
 export function registerHideDeadModule() {
-  // registerHideDeadHooks();
+  registerHideDeadHooks();
 }
 
 export function unregisterHideDeadModule() {
-  // unregisterHideDeadHooks();
+  unregisterHideDeadHooks();
 }

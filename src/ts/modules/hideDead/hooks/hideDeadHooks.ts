@@ -81,17 +81,13 @@ export function registerHideDeadHooks(): void {
     if (!actorDeathStateChanged(changed)) return;
     if (actor.hasPlayerOwner) return;
 
-    const tokenDocs = canvas.scene?.tokens.filter(
-      (tokenDoc) => tokenDoc.actor?.id === actor.id,
-    );
-    if (!tokenDocs?.length) return;
+    const token = actor.token;
+    if (!token) return;
 
-    for (const tokenDoc of tokenDocs) {
-      if (actorIsDead(actor)) {
-        await applyDeadStyle(tokenDoc);
-      } else {
-        await clearDeadStyle(tokenDoc);
-      }
+    if (actorIsDead(actor)) {
+      await applyDeadStyle(token);
+    } else {
+      await clearDeadStyle(token);
     }
   });
 }
