@@ -40,6 +40,10 @@ import {
   unregisterWindowResizerModule,
 } from "./windowResizer";
 import { registerPlaylistModule, unregisterPlaylistModule } from "./playlist";
+import {
+  registerHideSecretRollsModule,
+  unregisterHideSecretRollsModule,
+} from "./hideSecretRolls";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
@@ -49,25 +53,31 @@ export const moduleMacros = {
 };
 
 export function registerModules() {
+  registerChatTabsModule();
   registerCombatManagerModule();
   registerDiceSoNiceModule();
+  registerFoundryControlsModule();
   registerHideDeadModule();
+  registerHideSecretRollsModule();
   registerJournalEditorEnhancementsModule();
   registerPauseTweaksModule();
+  registerPlaylistModule();
   registerRadialMenuModule();
   registerRollResolverModule();
   registerWindowManagerModule();
   registerWindowResizerModule();
-  registerFoundryControlsModule();
-  registerPlaylistModule();
 }
 
 export function unregisterModules() {
+  unregisterChatTabsModule();
   unregisterCombatManagerModule();
   unregisterDiceSoNiceModule();
+  unregisterFoundryControlsModule();
   unregisterHideDeadModule();
+  unregisterHideSecretRollsModule();
   unregisterJournalEditorEnhancementsModule();
   unregisterPauseTweaksModule();
+  unregisterPlaylistModule();
   unregisterRadialMenuModule();
   unregisterRollResolverModule();
   unregisterWindowManagerModule();
