@@ -30,7 +30,6 @@ function shouldHidePrivateMessage(message: ChatMessagePF2e) {
 
 function shouldHide(message: ChatMessagePF2e) {
   if (!message.author?.isGM) return false;
-  console.log("wat", message);
 
   const messageType = getMessageType(message);
 
