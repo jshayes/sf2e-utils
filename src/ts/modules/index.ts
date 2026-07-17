@@ -13,6 +13,10 @@ import {
 } from "./foundryControls";
 import { registerHideDeadModule, unregisterHideDeadModule } from "./hideDead";
 import {
+  registerHideEnemyNamesModule,
+  unregisterHideEnemyNamesModule,
+} from "./hideEnemyNames";
+import {
   registerJournalEditorEnhancementsModule,
   unregisterJournalEditorEnhancementsModule,
 } from "./journalEditorEnhancements";
@@ -53,11 +57,11 @@ export const moduleMacros = {
 };
 
 export function registerModules() {
-  registerChatTabsModule();
   registerCombatManagerModule();
   registerDiceSoNiceModule();
   registerFoundryControlsModule();
   registerHideDeadModule();
+  registerHideEnemyNamesModule();
   registerHideSecretRollsModule();
   registerJournalEditorEnhancementsModule();
   registerPauseTweaksModule();
@@ -69,11 +73,11 @@ export function registerModules() {
 }
 
 export function unregisterModules() {
-  unregisterChatTabsModule();
   unregisterCombatManagerModule();
   unregisterDiceSoNiceModule();
   unregisterFoundryControlsModule();
   unregisterHideDeadModule();
+  unregisterHideEnemyNamesModule();
   unregisterHideSecretRollsModule();
   unregisterJournalEditorEnhancementsModule();
   unregisterPauseTweaksModule();
