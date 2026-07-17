@@ -1,5 +1,6 @@
 import { HooksManager } from "../../../helpers/hooks";
 import type { ChatMessagePF2e } from "foundry-pf2e";
+import { hideSecretRollsIsEnabled } from "../settings";
 
 const hooks = new HooksManager();
 
@@ -47,6 +48,7 @@ function shouldHide(message: ChatMessagePF2e) {
 
 export function registerHideSecretRollsHooks(): void {
   hooks.on("preCreateChatMessage", (message) => {
+    if (!hideSecretRollsIsEnabled()) return;
     if (!shouldHide(message)) return;
 
     message.updateSource({
@@ -55,6 +57,7 @@ export function registerHideSecretRollsHooks(): void {
   });
 
   hooks.on("renderChatMessageHTML", (message, html) => {
+    if (!hideSecretRollsIsEnabled()) return;
     if (game.user.isGM) return;
 
     if (shouldHide(message)) {

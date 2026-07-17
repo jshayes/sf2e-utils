@@ -7,6 +7,7 @@ import type {
   TokenDocumentPF2e,
 } from "foundry-pf2e";
 import { HooksManager } from "../../../helpers/hooks";
+import { hideEnemyNamesIsEnabled } from "../settings";
 import { getAnonymousActorLabel, getAnonymousCombatantLabel } from "../utils";
 
 const hooks = new HooksManager();
@@ -46,6 +47,7 @@ function anonymizeEncounterTracker(
   app: EncounterTracker<EncounterPF2e | null>,
   html: HTMLElement,
 ): void {
+  if (!hideEnemyNamesIsEnabled()) return;
   if (game.user.isGM) return;
 
   const combatants = app.viewed?.combatants;
@@ -117,6 +119,7 @@ function anonymizeChatMessage(
   message: ChatMessagePF2e,
   html: HTMLElement,
 ): void {
+  if (!hideEnemyNamesIsEnabled()) return;
   if (game.user.isGM) return;
 
   const speaker = getAnonymousIdentity(message.actor, message.token, [
