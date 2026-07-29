@@ -43,7 +43,11 @@ import {
   registerWindowResizerModule,
   unregisterWindowResizerModule,
 } from "./windowResizer";
-import { registerPlaylistModule, unregisterPlaylistModule } from "./playlist";
+import {
+  playlistMacros,
+  registerPlaylistModule,
+  unregisterPlaylistModule,
+} from "./playlist";
 import {
   registerHideSecretRollsModule,
   unregisterHideSecretRollsModule,
@@ -52,6 +56,7 @@ import {
 export const moduleMacros = {
   combatManager: combatManagerMacros,
   numberTracker: numberTrackerMacros,
+  playlist: playlistMacros,
   radialMenu: radialMenuMacros,
   windowManager: windowManagerMacros,
 };

@@ -3,6 +3,7 @@
 @use "./combatManager";
 @use "./windowManager";
 @use "./windowResizer";
+@use "./playlistAudioEffects";
 
 span.inline-check {
   background: var(--content-link-background);

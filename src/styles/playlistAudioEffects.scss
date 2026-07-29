@@ -1,0 +1,18 @@
+.sf2e-utils-audio-effect-toggle {
+  flex: 0 0 auto;
+
+  &.active {
+    color: var(--color-warm-1);
+    text-shadow: 0 0 6px var(--color-warm-2);
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+.sound-controls.sf2e-utils-audio-effect-controls {
+  flex: 0 0 96px;
+}
+
+.sf2e-utils-audio-effects-config {
+  margin-block: 0.75rem;
+}

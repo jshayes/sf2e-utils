@@ -6,7 +6,7 @@ import { registerEnrichers, unregisterEnrichers } from "./enrichers";
 import * as helpers from "./helpers";
 import * as macros from "./macros";
 import { moduleMacros, registerModules, unregisterModules } from "./modules";
-import { MyModule } from "./types";
+import type { MyModule } from "./types";
 
 type GameWithSf2eUtils = typeof game & {
   sf2eUtils?: MyModule["api"];
