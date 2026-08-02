@@ -203,32 +203,24 @@ export async function applyPlaylistAudioEffects(
   playlist: Playlist,
   state = getPlaylistAudioEffectsState(playlist),
 ): Promise<void> {
-  console.log("wat pimp", playlist);
   await Promise.all(
     playlist.sounds.map(async (playlistSound) => {
       if (!playlistSound.playing) {
         if (playlistSound.sound) {
-          console.log("wat no");
           await applyDisabledEffects(playlistSound.sound, 0);
         }
-        console.log("wat nonono");
         return;
       }
 
-      console.log("wat 1");
       if (!state.enabled && !playlistSound.sound) return;
-      console.log("wat 2");
 
       if (!playlistSound.sound) await playlistSound.load();
       const sound = playlistSound.sound;
       if (!sound) return;
-      console.log("wat 3");
 
       if (state.enabled) {
-        console.log("wat enable");
         await applyEnabledEffects(sound, state);
       } else {
-        console.log("wat disable");
         await applyDisabledEffects(sound, state.fadeMs);
       }
     }),
