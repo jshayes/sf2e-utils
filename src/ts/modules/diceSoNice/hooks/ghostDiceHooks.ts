@@ -39,8 +39,13 @@ export function registerGhostDiceHooks(): void {
     const appearance = options.user.getFlag("dice-so-nice", "appearance");
     if (!appearance) return;
 
+    const displayRoll = options.roll.constructor.fromJSON(
+      JSON.stringify(options.roll),
+    );
+    options.dsnRoll = displayRoll;
+
     let newGhost = true;
-    for (const die of options.roll.dice ?? []) {
+    for (const die of displayRoll.dice ?? []) {
       die.options ??= {};
       die.options.appearance ??= {};
 
@@ -74,7 +79,7 @@ export function registerGhostDiceHooks(): void {
       },
     });
 
-    options.roll.ghost = newGhost;
+    displayRoll.ghost = newGhost;
   });
 }
 
