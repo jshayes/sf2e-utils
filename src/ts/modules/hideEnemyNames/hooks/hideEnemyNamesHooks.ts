@@ -1,5 +1,6 @@
 import type {
   ActorPF2e,
+  ActorSheetPF2e,
   ChatMessagePF2e,
   CombatantPF2e,
   EncounterPF2e,
@@ -86,7 +87,7 @@ function getAnonymousIdentity(
   return names.size > 0 ? { label, names: Array.from(names) } : null;
 }
 
-function replaceIdentityInChatCard(
+function replaceIdentityInElement(
   html: HTMLElement,
   identity: AnonymousIdentity,
 ): void {
@@ -113,6 +114,12 @@ function replaceIdentityInChatCard(
       if (value) element.setAttribute(attribute, replaceNames(value));
     }
   }
+
+  for (const input of Array.from(
+    html.querySelectorAll<HTMLInputElement>('input[name="name"]'),
+  )) {
+    input.value = replaceNames(input.value);
+  }
 }
 
 function anonymizeChatMessage(
@@ -130,13 +137,28 @@ function anonymizeChatMessage(
     : null;
 
   for (const identity of [speaker, target]) {
-    if (identity) replaceIdentityInChatCard(html, identity);
+    if (identity) replaceIdentityInElement(html, identity);
   }
+}
+
+function anonymizeActorSheet(
+  app: ActorSheetPF2e<ActorPF2e>,
+  html: JQuery,
+): void {
+  if (!hideEnemyNamesIsEnabled()) return;
+  if (game.user.isGM) return;
+
+  const identity = getAnonymousIdentity(app.actor, app.token);
+  const element = app.element[0] ?? html[0];
+  if (!identity || !element) return;
+
+  replaceIdentityInElement(element, identity);
 }
 
 export function registerHideEnemyNamesHooks(): void {
   hooks.on("renderCombatTracker", anonymizeEncounterTracker);
   hooks.on("renderChatMessageHTML", anonymizeChatMessage);
+  hooks.on("renderActorSheet", anonymizeActorSheet);
 }
 
 export function unregisterHideEnemyNamesHooks(): void {

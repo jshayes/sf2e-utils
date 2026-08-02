@@ -8,7 +8,7 @@ export function hideEnemyNamesIsEnabled(): boolean {
 export function registerHideEnemyNamesSettings(): void {
   game.settings.register(moduleId, HIDE_ENEMY_NAMES_SETTING, {
     name: "Anonymous enemy names",
-    hint: "Replace hostile creature names with their size and creature type in the combat tracker and chat cards.",
+    hint: "Replace hostile creature names with their size and creature type in the combat tracker, chat cards, and actor sheets.",
     scope: "world",
     config: true,
     type: Boolean,
