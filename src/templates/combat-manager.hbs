@@ -68,6 +68,9 @@
           <button type="button" data-action="update-combat" aria-label="Update combat" {{#unless canUpdateCombat}}disabled{{/unless}}>
             <i class="fa-solid fa-floppy-disk"></i>
           </button>
+          <button type="button" data-action="add-combatants" aria-label="Add selected tokens to combat" {{#unless canAddCombatants}}disabled{{/unless}}>
+            <i class="fa-solid fa-plus"></i>
+          </button>
         </div>
       </div>
       <div class="combat-manager-combatants-list">
@@ -94,6 +97,15 @@
                 data-action="set-combatant-round"
                 data-id="{{this.id}}"
               />
+              <button
+                type="button"
+                class="combat-manager-icon-button"
+                data-action="delete-combatant"
+                data-id="{{this.id}}"
+                aria-label="Delete combatant"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </div>
           </div>
         {{/each}}

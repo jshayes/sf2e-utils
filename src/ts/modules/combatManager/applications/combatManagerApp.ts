@@ -37,6 +37,7 @@ type CombatManagerContext = fa.ApplicationRenderContext & {
     enabled: boolean;
   }>;
   canUpdateCombat: boolean;
+  canAddCombatants: boolean;
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -192,6 +193,7 @@ export class CombatManagerApp extends CombatManagerAppBase {
         selectedCombat === null ? [] : this.#buildCombatantRows(selectedCombat),
       canUpdateCombat:
         selectedCombat !== null && getControlledTokenIds().length > 0,
+      canAddCombatants: this.#canAddCombatants(),
     };
   }
 
@@ -213,6 +215,9 @@ export class CombatManagerApp extends CombatManagerAppBase {
     const updateButton = root.querySelector<HTMLButtonElement>(
       "button[data-action='update-combat']",
     );
+    const addCombatantsButton = root.querySelector<HTMLButtonElement>(
+      "button[data-action='add-combatants']",
+    );
     const selectCombatantsButton = root.querySelector<HTMLButtonElement>(
       "button[data-action='select-combatants']",
     );
@@ -233,6 +238,12 @@ export class CombatManagerApp extends CombatManagerAppBase {
 
     if (updateButton instanceof HTMLButtonElement) {
       updateButton.addEventListener("click", () => void this.#onUpdateCombat());
+    }
+    if (addCombatantsButton instanceof HTMLButtonElement) {
+      addCombatantsButton.addEventListener(
+        "click",
+        () => void this.#onAddCombatants(),
+      );
     }
     if (selectCombatantsButton instanceof HTMLButtonElement) {
       selectCombatantsButton.addEventListener(
@@ -275,6 +286,18 @@ export class CombatManagerApp extends CombatManagerAppBase {
         const tokenId = String(enabledInput.dataset.id ?? "").trim();
         if (!tokenId) return;
         void this.#onSetCombatantEnabled(tokenId, enabledInput.checked);
+      });
+    }
+
+    for (const deleteButton of Array.from(
+      root.querySelectorAll<HTMLButtonElement>(
+        "button[data-action='delete-combatant']",
+      ),
+    )) {
+      deleteButton.addEventListener("click", () => {
+        const tokenId = String(deleteButton.dataset.id ?? "").trim();
+        if (!tokenId) return;
+        void this.#onDeleteCombatant(tokenId);
       });
     }
 
@@ -366,6 +389,13 @@ export class CombatManagerApp extends CombatManagerAppBase {
     );
     if (updateButton instanceof HTMLButtonElement) {
       updateButton.disabled = !this.#canUpdateCombat();
+    }
+
+    const addCombatantsButton = root.querySelector<HTMLButtonElement>(
+      "button[data-action='add-combatants']",
+    );
+    if (addCombatantsButton instanceof HTMLButtonElement) {
+      addCombatantsButton.disabled = !this.#canAddCombatants();
     }
   }
 
@@ -561,6 +591,40 @@ export class CombatManagerApp extends CombatManagerAppBase {
     await this.render();
   }
 
+  async #onAddCombatants(): Promise<void> {
+    const selectedCombat = this.#getSelectedCombat();
+    if (!selectedCombat) return;
+
+    const existingTokenIds = new Set(
+      selectedCombat.combatants.map((combatant) => combatant.id),
+    );
+    const newCombatants = getControlledTokenIds()
+      .filter((id) => !existingTokenIds.has(id))
+      .map((id) => ({ id, round: 1, enabled: true }));
+    if (newCombatants.length === 0) return;
+
+    selectedCombat.combatants.push(...newCombatants);
+    await this.#saveCombatsToScene();
+    await this.render();
+  }
+
+  async #onDeleteCombatant(tokenId: string): Promise<void> {
+    const selectedCombat = this.#getSelectedCombat();
+    if (!selectedCombat) return;
+
+    const index = selectedCombat.combatants.findIndex(
+      (combatant) => combatant.id === tokenId,
+    );
+    if (index < 0) return;
+
+    if (this.#hoveredCombatantTokenId === tokenId) {
+      this.#clearCombatantHover();
+    }
+    selectedCombat.combatants.splice(index, 1);
+    await this.#saveCombatsToScene();
+    await this.render();
+  }
+
   async #onSetCombatantRound(tokenId: string, round: number): Promise<void> {
     const selectedCombat = this.#getSelectedCombat();
     if (!selectedCombat) return;
@@ -661,6 +725,16 @@ export class CombatManagerApp extends CombatManagerAppBase {
     return (
       this.#getSelectedCombat() !== null && getControlledTokenIds().length > 0
     );
+  }
+
+  #canAddCombatants(): boolean {
+    const selectedCombat = this.#getSelectedCombat();
+    if (!selectedCombat) return false;
+
+    const existingTokenIds = new Set(
+      selectedCombat.combatants.map((combatant) => combatant.id),
+    );
+    return getControlledTokenIds().some((id) => !existingTokenIds.has(id));
   }
 
   #getPlaceableTokenById(id: string) {
