@@ -1,0 +1,22 @@
+<div class="planet-clock-list-app">
+  {{#if hasPlanets}}
+    {{#each planets}}
+      <div class="planet-clock-list-row">
+        <div>
+          <strong>{{this.name}}</strong>
+          <span>{{this.dayLengthLabel}}</span>
+        </div>
+        <button
+          type="button"
+          data-open-planet-clock="{{this.index}}"
+          aria-label="Open {{this.name}} {{#if this.hasDayNightCycle}}clock{{else}}details{{/if}}"
+        >
+          <i class="fa-solid {{#if this.hasDayNightCycle}}fa-clock{{else}}fa-circle-info{{/if}}"></i>
+          Open
+        </button>
+      </div>
+    {{/each}}
+  {{else}}
+    <p>No planet clocks have been defined.</p>
+  {{/if}}
+</div>

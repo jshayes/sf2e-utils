@@ -1,0 +1,45 @@
+<div class="planet-clock-app">
+  <article class="planet-clock">
+    <header class="planet-clock-header">
+      <div>
+        <h2>{{planet.name}}</h2>
+        {{#if clock}}
+          <span class="planet-clock-period">{{clock.period}}</span>
+        {{/if}}
+      </div>
+      {{#if clock}}
+        <div class="planet-clock-current-time">{{clock.localTime}}</div>
+      {{/if}}
+    </header>
+
+    <div class="planet-clock-details">
+      <span>{{planet.dayLengthLabel}}</span>
+      {{#if planet.gravity}}
+        <span>Gravity: {{planet.gravity}}</span>
+      {{/if}}
+      {{#if planet.atmosphere}}
+        <span>Atmosphere: {{planet.atmosphere}}</span>
+      {{/if}}
+    </div>
+
+    {{#if clock}}
+      <div class="planet-clock-timeline" style="--planet-day-progress: {{clock.progress}}%">
+        <div class="planet-clock-timeline-progress"></div>
+      </div>
+
+      <div class="planet-clock-key-times">
+        {{#each clock.keyTimes}}
+          <div class="planet-clock-key-time">
+            <span>{{this.name}}</span>
+            <strong>{{this.time}}</strong>
+          </div>
+        {{/each}}
+      </div>
+
+      <div class="planet-clock-next-time">
+        Next: {{clock.nextKeyTime.name}} at {{clock.nextKeyTime.time}}
+        <span>({{clock.nextKeyTime.remaining}} away)</span>
+      </div>
+    {{/if}}
+  </article>
+</div>

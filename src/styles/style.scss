@@ -4,6 +4,7 @@
 @use "./windowManager";
 @use "./windowResizer";
 @use "./playlistAudioEffects";
+@use "./planetClocks";
 
 span.inline-check {
   background: var(--content-link-background);

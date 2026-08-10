@@ -44,6 +44,11 @@ import {
   unregisterWindowResizerModule,
 } from "./windowResizer";
 import {
+  registerWorldClockModule,
+  unregisterWorldClockModule,
+  worldClockMacros,
+} from "./worldClock";
+import {
   playlistMacros,
   registerPlaylistModule,
   unregisterPlaylistModule,
@@ -59,6 +64,7 @@ export const moduleMacros = {
   playlist: playlistMacros,
   radialMenu: radialMenuMacros,
   windowManager: windowManagerMacros,
+  worldClock: worldClockMacros,
 };
 
 export function registerModules() {
@@ -75,6 +81,7 @@ export function registerModules() {
   registerRollResolverModule();
   registerWindowManagerModule();
   registerWindowResizerModule();
+  registerWorldClockModule();
 }
 
 export function unregisterModules() {
@@ -91,6 +98,7 @@ export function unregisterModules() {
   unregisterRollResolverModule();
   unregisterWindowManagerModule();
   unregisterWindowResizerModule();
+  unregisterWorldClockModule();
   unregisterFoundryControlsModule();
   unregisterPlaylistModule();
 }
