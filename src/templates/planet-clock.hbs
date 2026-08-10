@@ -3,9 +3,7 @@
     <header class="planet-clock-header">
       <div>
         <h2>{{planet.name}}</h2>
-        {{#if clock}}
-          <span class="planet-clock-period">{{clock.period}}</span>
-        {{/if}}
+        <span class="planet-clock-day-length">{{planet.dayLengthLabel}}</span>
       </div>
       <div class="planet-clock-header-actions">
         {{#if clock}}
@@ -37,7 +35,9 @@
     </div>
 
     <div class="planet-clock-details">
-      <span>{{planet.dayLengthLabel}}</span>
+      {{#if clock}}
+        <span class="planet-clock-period">{{clock.period}}</span>
+      {{/if}}
       {{#if planet.gravity}}
         <span>Gravity: {{planet.gravity}}</span>
       {{/if}}
