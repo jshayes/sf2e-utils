@@ -1,22 +1,47 @@
 <div class="planet-clock-list-app">
-  {{#if hasPlanets}}
-    {{#each planets}}
-      <div class="planet-clock-list-row">
-        <div>
-          <strong>{{this.name}}</strong>
-          <span>{{this.dayLengthLabel}}</span>
-        </div>
-        <button
-          type="button"
-          data-open-planet-clock="{{this.index}}"
-          aria-label="Open {{this.name}} {{#if this.hasDayNightCycle}}clock{{else}}details{{/if}}"
-        >
-          <i class="fa-solid {{#if this.hasDayNightCycle}}fa-clock{{else}}fa-circle-info{{/if}}"></i>
-          Open
-        </button>
-      </div>
-    {{/each}}
-  {{else}}
-    <p>No planet clocks have been defined.</p>
+  {{#if canEdit}}
+    <button type="button" data-add-planet-clock>
+      <i class="fa-solid fa-plus"></i>
+      Add Planet
+    </button>
   {{/if}}
+
+  <div class="planet-clock-list-entries">
+    {{#if hasPlanets}}
+      {{#each planets}}
+        <div class="planet-clock-list-row">
+          <div class="planet-clock-list-details">
+            <strong>{{this.name}}</strong>
+            <span>
+              {{this.dayLengthLabel}}
+              {{#if this.currentTime}} · {{this.currentTime}}{{/if}}
+            </span>
+          </div>
+          <div class="planet-clock-list-actions">
+            <button
+              type="button"
+              data-open-planet-clock="{{this.id}}"
+              aria-label="Open {{this.name}} {{#if this.hasDayNightCycle}}clock{{else}}details{{/if}}"
+            >
+              <i class="fa-solid {{#if this.hasDayNightCycle}}fa-clock{{else}}fa-circle-info{{/if}}"></i>
+              Open
+            </button>
+            {{#if ../canEdit}}
+              <button
+                type="button"
+                class="planet-clock-delete-button"
+                data-delete-planet-clock="{{this.id}}"
+                aria-label="Delete {{this.name}}"
+                data-tooltip="Delete {{this.name}}"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            {{/if}}
+          </div>
+        </div>
+      {{/each}}
+    {{else}}
+      <p>No planet clocks have been defined.</p>
+    {{/if}}
+  </div>
 </div>

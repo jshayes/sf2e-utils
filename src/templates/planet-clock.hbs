@@ -7,9 +7,22 @@
           <span class="planet-clock-period">{{clock.period}}</span>
         {{/if}}
       </div>
-      {{#if clock}}
-        <div class="planet-clock-current-time">{{clock.localTime}}</div>
-      {{/if}}
+      <div class="planet-clock-header-actions">
+        {{#if clock}}
+          <div class="planet-clock-current-time">{{clock.localTime}}</div>
+        {{/if}}
+        {{#if canEdit}}
+          <button
+            type="button"
+            class="planet-clock-edit-button"
+            data-edit-planet-clock
+            aria-label="Edit {{planet.name}}"
+            data-tooltip="Edit {{planet.name}}"
+          >
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+        {{/if}}
+      </div>
     </header>
 
     <div class="planet-clock-details">

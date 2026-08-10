@@ -2,10 +2,11 @@ import { moduleId } from "../../constants";
 import {
   calculatePlanetClockTime,
   getWorldClockTimestamp,
-  PLANET_CLOCKS,
   type PlanetClockDefinition,
   type PlanetClockTime,
 } from "./planetClocks";
+import { openPlanetClockEditor } from "./planetClockEditor";
+import { getPlanetClocks, savePlanetClocks } from "./planetClockStore";
 
 type PlanetView = PlanetClockDefinition & {
   dayLengthLabel: string;
@@ -14,16 +15,19 @@ type PlanetView = PlanetClockDefinition & {
 type PlanetClockContext = fa.ApplicationRenderContext & {
   planet: PlanetView;
   clock: PlanetClockTime | null;
+  canEdit: boolean;
 };
 
 type PlanetClockListContext = fa.ApplicationRenderContext & {
   planets: Array<{
-    index: number;
+    id: string;
     name: string;
     dayLengthLabel: string;
     hasDayNightCycle: boolean;
+    currentTime: string | null;
   }>;
   hasPlanets: boolean;
+  canEdit: boolean;
 };
 
 const HandlebarsApplication = foundry.applications.api.HandlebarsApplicationMixin(
@@ -62,21 +66,21 @@ export class PlanetClockApp extends HandlebarsApplication {
     },
   };
 
-  readonly planetIndex: number;
+  readonly planetId: string;
 
-  constructor(planetIndex: number) {
-    const definition = PLANET_CLOCKS[planetIndex];
-    if (!definition) throw new Error(`No planet clock exists at index ${planetIndex}.`);
+  constructor(planetId: string) {
+    const definition = getPlanetClocks().find((clock) => clock.id === planetId);
+    if (!definition) throw new Error(`No planet exists with ID ${planetId}.`);
 
     super({
-      id: `${moduleId}-planet-clock-${planetIndex}`,
+      id: `${moduleId}-planet-clock-${planetId}`,
       window: {
         title: hasDayNightCycle(definition)
           ? `${definition.name} Clock`
           : definition.name,
       },
     });
-    this.planetIndex = planetIndex;
+    this.planetId = planetId;
   }
 
   override async _prepareContext(
@@ -85,8 +89,10 @@ export class PlanetClockApp extends HandlebarsApplication {
     const context = (await super._prepareContext(
       options,
     )) as fa.ApplicationRenderContext;
-    const definition = PLANET_CLOCKS[this.planetIndex];
-    if (!definition) throw new Error(`No planet clock exists at index ${this.planetIndex}.`);
+    const definition = getPlanetClocks().find(
+      (clock) => clock.id === this.planetId,
+    );
+    if (!definition) throw new Error(`No planet exists with ID ${this.planetId}.`);
 
     return {
       ...context,
@@ -97,7 +103,24 @@ export class PlanetClockApp extends HandlebarsApplication {
       clock: hasDayNightCycle(definition)
         ? calculatePlanetClockTime(definition, getWorldClockTimestamp())
         : null,
+      canEdit: game.user.isGM,
     };
+  }
+
+  protected override async _onRender(
+    context: fa.ApplicationRenderContext,
+    options: foundry.applications.api.HandlebarsRenderOptions,
+  ): Promise<void> {
+    await super._onRender(context, options);
+
+    this.element
+      .querySelector<HTMLButtonElement>("[data-edit-planet-clock]")
+      ?.addEventListener("click", () => {
+        const definition = getPlanetClocks().find(
+          (clock) => clock.id === this.planetId,
+        );
+        if (definition) void openPlanetClockEditor(definition);
+      });
   }
 }
 
@@ -126,17 +149,25 @@ export class PlanetClockListApp extends HandlebarsApplication {
     const context = (await super._prepareContext(
       options,
     )) as fa.ApplicationRenderContext;
-    const planets = PLANET_CLOCKS.map((definition, index) => ({
-      index,
-      name: definition.name,
-      dayLengthLabel: getDayLengthLabel(definition),
-      hasDayNightCycle: hasDayNightCycle(definition),
-    }));
+    const timestamp = getWorldClockTimestamp();
+    const planets = getPlanetClocks().map((definition) => {
+      const hasCycle = hasDayNightCycle(definition);
+      return {
+        id: definition.id,
+        name: definition.name,
+        dayLengthLabel: getDayLengthLabel(definition),
+        hasDayNightCycle: hasCycle,
+        currentTime: hasCycle
+          ? calculatePlanetClockTime(definition, timestamp).localTime
+          : null,
+      };
+    });
 
     return {
       ...context,
       planets,
       hasPlanets: planets.length > 0,
+      canEdit: game.user.isGM,
     };
   }
 
@@ -146,18 +177,31 @@ export class PlanetClockListApp extends HandlebarsApplication {
   ): Promise<void> {
     await super._onRender(context, options);
 
+    this.element
+      .querySelector<HTMLButtonElement>("[data-add-planet-clock]")
+      ?.addEventListener("click", () => void openPlanetClockEditor());
+
     for (const button of Array.from(
       this.element.querySelectorAll<HTMLButtonElement>("[data-open-planet-clock]"),
     )) {
       button.addEventListener("click", () => {
-        const index = Number.parseInt(button.dataset.openPlanetClock ?? "", 10);
-        if (Number.isInteger(index)) void openPlanetClock(index);
+        const id = button.dataset.openPlanetClock;
+        if (id) void openPlanetClock(id);
+      });
+    }
+
+    for (const button of Array.from(
+      this.element.querySelectorAll<HTMLButtonElement>("[data-delete-planet-clock]"),
+    )) {
+      button.addEventListener("click", () => {
+        const id = button.dataset.deletePlanetClock;
+        if (id) void deletePlanetClock(id);
       });
     }
   }
 }
 
-const planetClockApps = new Map<number, PlanetClockApp>();
+const planetClockApps = new Map<string, PlanetClockApp>();
 let planetClockListApp: PlanetClockListApp | undefined;
 
 export async function openPlanetClockList(): Promise<void> {
@@ -165,16 +209,57 @@ export async function openPlanetClockList(): Promise<void> {
   await planetClockListApp.render({ force: true });
 }
 
-export async function openPlanetClock(planetIndex: number): Promise<void> {
-  if (!PLANET_CLOCKS[planetIndex]) return;
+export async function openPlanetClock(planetId: string | number): Promise<void> {
+  const clocks = getPlanetClocks();
+  const definition =
+    typeof planetId === "number"
+      ? clocks[planetId]
+      : clocks.find((clock) => clock.id === planetId || clock.name === planetId);
+  if (!definition) return;
 
-  const app = planetClockApps.get(planetIndex) ?? new PlanetClockApp(planetIndex);
-  planetClockApps.set(planetIndex, app);
+  const app =
+    planetClockApps.get(definition.id) ?? new PlanetClockApp(definition.id);
+  planetClockApps.set(definition.id, app);
   await app.render({ force: true });
 }
 
 export function renderPlanetClocks(): void {
-  for (const app of planetClockApps.values()) {
-    if (app.rendered) void app.render();
+  if (planetClockListApp?.rendered) void planetClockListApp.render();
+
+  const clocks = getPlanetClocks();
+  for (const [id, app] of planetClockApps) {
+    const definition = clocks.find((clock) => clock.id === id);
+    if (!definition) {
+      if (app.rendered) void app.close();
+      planetClockApps.delete(id);
+      continue;
+    }
+
+    if (app.rendered) {
+      const title = hasDayNightCycle(definition)
+        ? `${definition.name} Clock`
+        : definition.name;
+      app.options.window.title = title;
+      app.window.title.textContent = title;
+      void app.render();
+    }
   }
+}
+
+async function deletePlanetClock(planetId: string): Promise<void> {
+  if (!game.user.isGM) return;
+
+  const clocks = getPlanetClocks();
+  const definition = clocks.find((clock) => clock.id === planetId);
+  if (!definition) return;
+
+  const confirmed = await foundry.applications.api.DialogV2.confirm({
+    window: { title: `Delete ${definition.name}` },
+    content: `<p>Delete ${foundry.utils.escapeHTML(definition.name)} from the planet clock list?</p>`,
+    yes: { label: "Delete", icon: "fa-solid fa-trash" },
+    no: { label: "Cancel" },
+  });
+  if (!confirmed) return;
+
+  await savePlanetClocks(clocks.filter((clock) => clock.id !== planetId));
 }

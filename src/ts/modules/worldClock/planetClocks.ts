@@ -1,4 +1,5 @@
 export type PlanetClockDefinition = {
+  id: string;
   name: string;
   gravity?: string;
   atmosphere?: string;
@@ -10,56 +11,79 @@ export type PlanetClockDefinition = {
   epoch?: number;
 };
 
-export const PLANET_CLOCKS: PlanetClockDefinition[] = [
+export const DEFAULT_PLANET_CLOCKS: PlanetClockDefinition[] = [
   {
+    id: "pact-standard",
     name: "Pact Standard",
     dayLength: { hours: 24, minutes: 0 },
     atmosphere: "Normal",
     gravity: "Standard",
   },
   {
+    id: "aballon",
     name: "Aballon",
     dayLength: { hours: 12, minutes: 0 },
     atmosphere: "Thin (in places)",
     gravity: "1/3",
   },
   {
+    id: "absalom-station",
+    name: "Absalom Station",
+    dayLength: { hours: 24, minutes: 0 },
+    atmosphere: "Normal",
+    gravity: "Standard",
+  },
+  {
+    id: "akiton",
     name: "Akiton",
     dayLength: { hours: 24, minutes: 40 },
     atmosphere: "Thin",
     gravity: "1/3",
   },
   {
+    id: "verces",
     name: "Verces",
     dayLength: { hours: 0, minutes: 0 },
     atmosphere: "Normal",
     gravity: "Standard",
   },
   {
+    id: "idari",
+    name: "Idari",
+    dayLength: { hours: 27, minutes: 0 },
+    atmosphere: "Normal",
+    gravity: "1.5",
+  },
+  {
+    id: "eox",
     name: "Eox",
     dayLength: { hours: 24 * 30, minutes: 0 },
     atmosphere: "Thin and toxic",
     gravity: "Standard",
   },
   {
+    id: "triaxus",
     name: "Triaxus",
     dayLength: { hours: 24, minutes: 0 },
     atmosphere: "Normal",
     gravity: "Standard",
   },
   {
+    id: "liavara",
     name: "Liavara",
     dayLength: { hours: 72, minutes: 0 },
     atmosphere: "Dense, unbreathable",
     gravity: "High",
   },
   {
+    id: "bretheda",
     name: "Bretheda",
     dayLength: { hours: 144, minutes: 0 },
     atmosphere: "Special",
     gravity: "2-1/2",
   },
   {
+    id: "apostae",
     name: "Apostae",
     dayLength: { hours: 7 * 24, minutes: 0 },
     atmosphere: "Normal or none",

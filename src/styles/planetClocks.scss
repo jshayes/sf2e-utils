@@ -30,6 +30,23 @@
   font-weight: 700;
 }
 
+.planet-clocks .planet-clock-header-actions,
+.planet-clock-list .planet-clock-list-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.planet-clocks .planet-clock-edit-button,
+.planet-clock-list .planet-clock-delete-button {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 2rem;
+  justify-content: center;
+  margin: 0;
+  width: 2rem;
+}
+
 .planet-clocks .planet-clock-details {
   display: flex;
   gap: 0.75rem;
@@ -97,8 +114,13 @@
 }
 
 .planet-clock-list .planet-clock-list-app {
+  display: flex;
+  flex-direction: column;
+}
+
+.planet-clock-list .planet-clock-list-entries {
   display: grid;
-  gap: 0.5rem;
+  margin-top: 0.75rem;
 }
 
 .planet-clock-list .planet-clock-list-row {
@@ -115,7 +137,7 @@
   padding-bottom: 0;
 }
 
-.planet-clock-list .planet-clock-list-row > div {
+.planet-clock-list .planet-clock-list-details {
   display: flex;
   flex-direction: column;
 }
@@ -125,8 +147,12 @@
   font-size: 0.8rem;
 }
 
-.planet-clock-list .planet-clock-list-row button {
+.planet-clock-list .planet-clock-list-actions button {
   flex: 0 0 auto;
   white-space: nowrap;
   width: auto;
+}
+
+.planet-clock-list .planet-clock-list-actions .planet-clock-delete-button {
+  width: 2rem;
 }
