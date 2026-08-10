@@ -1,8 +1,10 @@
 import { moduleId } from "../../constants";
 import {
   calculatePlanetClockTime,
+  getPlanetLocations,
   getWorldClockTimestamp,
   type PlanetClockDefinition,
+  type PlanetClockLocation,
   type PlanetClockTime,
 } from "./planetClocks";
 import { openPlanetClockEditor } from "./planetClockEditor";
@@ -10,10 +12,14 @@ import { getPlanetClocks, savePlanetClocks } from "./planetClockStore";
 
 type PlanetView = PlanetClockDefinition & {
   dayLengthLabel: string;
+  gravity?: string;
+  atmosphere?: string;
 };
 
 type PlanetClockContext = fa.ApplicationRenderContext & {
   planet: PlanetView;
+  locations: Array<PlanetClockLocation & { selected: boolean }>;
+  selectedLocation: PlanetClockLocation;
   clock: PlanetClockTime | null;
   canEdit: boolean;
 };
@@ -25,6 +31,7 @@ type PlanetClockListContext = fa.ApplicationRenderContext & {
     dayLengthLabel: string;
     hasDayNightCycle: boolean;
     currentTime: string | null;
+    locationName: string;
   }>;
   hasPlanets: boolean;
   canEdit: boolean;
@@ -67,6 +74,7 @@ export class PlanetClockApp extends HandlebarsApplication {
   };
 
   readonly planetId: string;
+  private selectedLocationId: string;
 
   constructor(planetId: string) {
     const definition = getPlanetClocks().find((clock) => clock.id === planetId);
@@ -81,6 +89,7 @@ export class PlanetClockApp extends HandlebarsApplication {
       },
     });
     this.planetId = planetId;
+    this.selectedLocationId = getPlanetLocations(definition)[0].id;
   }
 
   override async _prepareContext(
@@ -93,15 +102,31 @@ export class PlanetClockApp extends HandlebarsApplication {
       (clock) => clock.id === this.planetId,
     );
     if (!definition) throw new Error(`No planet exists with ID ${this.planetId}.`);
+    const locations = getPlanetLocations(definition);
+    const selectedLocation =
+      locations.find((location) => location.id === this.selectedLocationId) ??
+      locations[0];
+    this.selectedLocationId = selectedLocation.id;
 
     return {
       ...context,
       planet: {
         ...definition,
+        gravity: selectedLocation.gravity || definition.gravity,
+        atmosphere: selectedLocation.atmosphere || definition.atmosphere,
         dayLengthLabel: getDayLengthLabel(definition),
       },
+      locations: locations.map((location) => ({
+        ...location,
+        selected: location.id === selectedLocation.id,
+      })),
+      selectedLocation,
       clock: hasDayNightCycle(definition)
-        ? calculatePlanetClockTime(definition, getWorldClockTimestamp())
+        ? calculatePlanetClockTime(
+            definition,
+            getWorldClockTimestamp(),
+            selectedLocation,
+          )
         : null,
       canEdit: game.user.isGM,
     };
@@ -120,6 +145,13 @@ export class PlanetClockApp extends HandlebarsApplication {
           (clock) => clock.id === this.planetId,
         );
         if (definition) void openPlanetClockEditor(definition);
+      });
+
+    this.element
+      .querySelector<HTMLSelectElement>("[data-select-clock-location]")
+      ?.addEventListener("change", (event) => {
+        this.selectedLocationId = (event.currentTarget as HTMLSelectElement).value;
+        void this.render();
       });
   }
 }
@@ -152,14 +184,16 @@ export class PlanetClockListApp extends HandlebarsApplication {
     const timestamp = getWorldClockTimestamp();
     const planets = getPlanetClocks().map((definition) => {
       const hasCycle = hasDayNightCycle(definition);
+      const location = getPlanetLocations(definition)[0];
       return {
         id: definition.id,
         name: definition.name,
         dayLengthLabel: getDayLengthLabel(definition),
         hasDayNightCycle: hasCycle,
         currentTime: hasCycle
-          ? calculatePlanetClockTime(definition, timestamp).localTime
+          ? calculatePlanetClockTime(definition, timestamp, location).localTime
           : null,
+        locationName: location.name,
       };
     });
 

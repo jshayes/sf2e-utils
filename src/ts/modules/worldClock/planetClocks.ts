@@ -1,3 +1,15 @@
+export type PlanetClockLocation = {
+  id: string;
+  name: string;
+  /** Offset from the planet's standard time. Both values may be negative. */
+  offset: {
+    hours: number;
+    minutes: number;
+  };
+  gravity?: string;
+  atmosphere?: string;
+};
+
 export type PlanetClockDefinition = {
   id: string;
   name: string;
@@ -9,7 +21,24 @@ export type PlanetClockDefinition = {
   };
   /** Unix timestamp, in seconds, at which this planet's local time was midnight. */
   epoch?: number;
+  locations?: PlanetClockLocation[];
 };
+
+export function createDefaultLocation(): PlanetClockLocation {
+  return {
+    id: "standard",
+    name: "Default",
+    offset: { hours: 0, minutes: 0 },
+  };
+}
+
+export function getPlanetLocations(
+  definition: PlanetClockDefinition,
+): PlanetClockLocation[] {
+  return definition.locations?.length
+    ? definition.locations
+    : [createDefaultLocation()];
+}
 
 export const DEFAULT_PLANET_CLOCKS: PlanetClockDefinition[] = [
   {
@@ -89,7 +118,10 @@ export const DEFAULT_PLANET_CLOCKS: PlanetClockDefinition[] = [
     atmosphere: "Normal or none",
     gravity: "1/10",
   },
-];
+].map((definition) => ({
+  ...definition,
+  locations: [createDefaultLocation()],
+}));
 
 type DayPhase = {
   name: "Midnight" | "Dawn" | "Noon" | "Twilight";
@@ -144,6 +176,7 @@ export function getWorldClockTimestamp(): number {
 export function calculatePlanetClockTime(
   definition: PlanetClockDefinition,
   timestamp = getWorldClockTimestamp(),
+  location?: PlanetClockLocation,
 ): PlanetClockTime {
   const dayLength = definition.dayLength ?? { hours: 0, minutes: 0 };
   const dayLengthSeconds = Math.trunc(
@@ -155,8 +188,11 @@ export function calculatePlanetClockTime(
     );
   }
 
+  const offsetSeconds = location
+    ? (location.offset.hours * 60 + location.offset.minutes) * 60
+    : 0;
   const localSeconds = positiveModulo(
-    timestamp - (definition.epoch ?? 0),
+    timestamp - (definition.epoch ?? 0) + offsetSeconds,
     dayLengthSeconds,
   );
   const phaseIndex = Math.floor(

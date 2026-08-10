@@ -53,6 +53,98 @@
   margin-top: 0.35rem;
 }
 
+.planet-clocks .planet-clock-location-selector {
+  margin: 0.65rem 0 0;
+}
+
+.planet-clocks .planet-clock-location-selector label {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.planet-clock-editor-locations {
+  border-top: 1px solid var(--color-border-light-primary);
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.planet-clock-editor-locations-header,
+.planet-clock-location-row,
+.planet-clock-location-actions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.planet-clock-editor-locations-header h3 {
+  border: 0;
+  margin: 0;
+}
+
+.planet-clock-editor-locations-header button {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.planet-clock-location-list {
+  max-height: min(40vh, 28rem);
+  overflow-y: auto;
+  scrollbar-gutter: auto;
+}
+
+.planet-clock-location-row {
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+  gap: 0.75rem;
+  margin: 0.75rem 0 0;
+  padding-left: 0.5rem;
+}
+
+.planet-clock-location-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.planet-clock-location-details span {
+  color: var(--color-text-subtle);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.planet-clock-location-actions {
+  flex: 0 0 auto;
+  gap: 0.35rem;
+}
+
+.planet-clock-location-actions button {
+  flex: 0 0 auto;
+  margin: 0;
+  width: auto;
+}
+
+.planet-clock-location-actions button.icon {
+  flex: 0 0 2rem;
+  width: 2rem;
+}
+
+.planet-clock-location-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.planet-clock-location-editor .form-group,
+.planet-clock-location-editor .hint {
+  margin: 0;
+}
+
+.planet-clock-location-editor select[name="offsetDirection"] {
+  flex: 0 0 3rem;
+}
+
 .planet-clocks .planet-clock-timeline {
   background: var(--color-bg-option);
   border-radius: 999px;

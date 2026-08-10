@@ -1,6 +1,7 @@
 import { moduleId } from "../../constants";
 import {
   DEFAULT_PLANET_CLOCKS,
+  getPlanetLocations,
   type PlanetClockDefinition,
 } from "./planetClocks";
 
@@ -19,9 +20,13 @@ export function registerPlanetClockStore(onChange: () => void): void {
 
 export function getPlanetClocks(): PlanetClockDefinition[] {
   const clocks = game.settings.get(moduleId, PLANET_CLOCKS_SETTING);
-  return foundry.utils.deepClone(
+  const definitions = foundry.utils.deepClone(
     Array.isArray(clocks) ? clocks : DEFAULT_PLANET_CLOCKS,
   ) as PlanetClockDefinition[];
+  return definitions.map((definition) => ({
+    ...definition,
+    locations: getPlanetLocations(definition),
+  }));
 }
 
 export async function savePlanetClocks(

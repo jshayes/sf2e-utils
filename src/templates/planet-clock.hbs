@@ -25,6 +25,17 @@
       </div>
     </header>
 
+    <div class="planet-clock-location-selector form-group">
+      <label for="{{@root.id}}-location">Location</label>
+      <div class="form-fields">
+        <select id="{{@root.id}}-location" data-select-clock-location>
+          {{#each locations}}
+            <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.name}}</option>
+          {{/each}}
+        </select>
+      </div>
+    </div>
+
     <div class="planet-clock-details">
       <span>{{planet.dayLengthLabel}}</span>
       {{#if planet.gravity}}
