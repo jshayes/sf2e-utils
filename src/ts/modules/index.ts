@@ -30,6 +30,10 @@ import {
   unregisterRollResolverModule,
 } from "./rollResolver";
 import {
+  registerRegionTransparencyModule,
+  unregisterRegionTransparencyModule,
+} from "./regionTransparency";
+import {
   radialMenuMacros,
   registerRadialMenuModule,
   unregisterRadialMenuModule,
@@ -78,6 +82,7 @@ export function registerModules() {
   registerPauseTweaksModule();
   registerPlaylistModule();
   registerRadialMenuModule();
+  registerRegionTransparencyModule();
   registerRollResolverModule();
   registerWindowManagerModule();
   registerWindowResizerModule();
@@ -95,6 +100,7 @@ export function unregisterModules() {
   unregisterPauseTweaksModule();
   unregisterPlaylistModule();
   unregisterRadialMenuModule();
+  unregisterRegionTransparencyModule();
   unregisterRollResolverModule();
   unregisterWindowManagerModule();
   unregisterWindowResizerModule();
