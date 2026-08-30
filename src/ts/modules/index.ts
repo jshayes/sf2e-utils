@@ -61,6 +61,10 @@ import {
   registerHideSecretRollsModule,
   unregisterHideSecretRollsModule,
 } from "./hideSecretRolls";
+import {
+  registerHideInCharacterMessagesModule,
+  unregisterHideInCharacterMessagesModule,
+} from "./hideInCharacterMessages";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
@@ -77,6 +81,7 @@ export function registerModules() {
   registerFoundryControlsModule();
   registerHideDeadModule();
   registerHideEnemyNamesModule();
+  registerHideInCharacterMessagesModule();
   registerHideSecretRollsModule();
   registerJournalEditorEnhancementsModule();
   registerPauseTweaksModule();
@@ -93,11 +98,14 @@ export function unregisterModules() {
   unregisterCombatManagerModule();
   unregisterDiceSoNiceModule();
   unregisterFoundryControlsModule();
+  unregisterFoundryControlsModule();
   unregisterHideDeadModule();
   unregisterHideEnemyNamesModule();
+  unregisterHideInCharacterMessagesModule();
   unregisterHideSecretRollsModule();
   unregisterJournalEditorEnhancementsModule();
   unregisterPauseTweaksModule();
+  unregisterPlaylistModule();
   unregisterPlaylistModule();
   unregisterRadialMenuModule();
   unregisterRegionTransparencyModule();
@@ -105,6 +113,4 @@ export function unregisterModules() {
   unregisterWindowManagerModule();
   unregisterWindowResizerModule();
   unregisterWorldClockModule();
-  unregisterFoundryControlsModule();
-  unregisterPlaylistModule();
 }
