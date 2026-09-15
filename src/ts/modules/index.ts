@@ -69,6 +69,10 @@ import {
   registerCardCounterModule,
   unregisterCardCounterModule,
 } from "./cardCounter";
+import {
+  registerClickScriptRegionModule,
+  unregisterClickScriptRegionModule,
+} from "./clickScriptRegion";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
@@ -81,6 +85,7 @@ export const moduleMacros = {
 
 export function registerModules() {
   registerCardCounterModule();
+  registerClickScriptRegionModule();
   registerCombatManagerModule();
   registerDiceSoNiceModule();
   registerFoundryControlsModule();
@@ -101,6 +106,7 @@ export function registerModules() {
 
 export function unregisterModules() {
   unregisterCardCounterModule();
+  unregisterClickScriptRegionModule();
   unregisterCombatManagerModule();
   unregisterDiceSoNiceModule();
   unregisterFoundryControlsModule();
