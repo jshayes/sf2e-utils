@@ -1,1 +1,19 @@
-{}
+{
+  "PF2E": {
+    "RuleElement": {
+      "SF2EUtilsCardCounter": "Card Hand Counter"
+    }
+  },
+  "SF2E_UTILS": {
+    "CardCounter": {
+      "Hand": {
+        "Label": "Card Hand",
+        "Hint": "The player's hand whose cards will be counted."
+      },
+      "Deck": {
+        "Label": "Source Deck",
+        "Hint": "Only cards originating from this deck will be counted."
+      }
+    }
+  }
+}

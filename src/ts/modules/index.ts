@@ -65,6 +65,10 @@ import {
   registerHideInCharacterMessagesModule,
   unregisterHideInCharacterMessagesModule,
 } from "./hideInCharacterMessages";
+import {
+  registerCardCounterModule,
+  unregisterCardCounterModule,
+} from "./cardCounter";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
@@ -76,6 +80,7 @@ export const moduleMacros = {
 };
 
 export function registerModules() {
+  registerCardCounterModule();
   registerCombatManagerModule();
   registerDiceSoNiceModule();
   registerFoundryControlsModule();
@@ -95,6 +100,7 @@ export function registerModules() {
 }
 
 export function unregisterModules() {
+  unregisterCardCounterModule();
   unregisterCombatManagerModule();
   unregisterDiceSoNiceModule();
   unregisterFoundryControlsModule();
