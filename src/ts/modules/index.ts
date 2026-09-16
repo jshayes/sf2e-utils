@@ -73,6 +73,10 @@ import {
   registerClickScriptRegionModule,
   unregisterClickScriptRegionModule,
 } from "./clickScriptRegion";
+import {
+  registerCcmCardLayerRefreshModule,
+  unregisterCcmCardLayerRefreshModule,
+} from "./ccmCardLayerRefresh";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
@@ -85,6 +89,7 @@ export const moduleMacros = {
 
 export function registerModules() {
   registerCardCounterModule();
+  registerCcmCardLayerRefreshModule();
   registerClickScriptRegionModule();
   registerCombatManagerModule();
   registerDiceSoNiceModule();
@@ -106,6 +111,7 @@ export function registerModules() {
 
 export function unregisterModules() {
   unregisterCardCounterModule();
+  unregisterCcmCardLayerRefreshModule();
   unregisterClickScriptRegionModule();
   unregisterCombatManagerModule();
   unregisterDiceSoNiceModule();
