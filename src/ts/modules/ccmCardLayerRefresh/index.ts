@@ -27,9 +27,7 @@ function getCcmCardLayer(): CcmCardLayer | undefined {
 }
 
 function scheduleCardLayerRedraw(card: Card<Cards>): void {
-  console.log("redraw");
   if (!game.modules.get(ccmModuleId)?.active) return;
-  console.log("ccm");
 
   const stack = card.parent;
   if (
@@ -37,7 +35,6 @@ function scheduleCardLayerRedraw(card: Card<Cards>): void {
     stack.type !== "pile" ||
     !stack.canvasCard
   ) {
-    console.log("no pile");
     return;
   }
 
@@ -53,7 +50,6 @@ function scheduleCardLayerRedraw(card: Card<Cards>): void {
 
         const cardLayer = getCcmCardLayer();
 
-        console.log("draw it");
         if (cardLayer) await cardLayer.draw();
       })
       .catch((error: unknown) => {

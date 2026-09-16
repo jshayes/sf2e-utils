@@ -4,7 +4,6 @@ let originalWeekdayNames: Record<string, string> | undefined;
 export function applyCustomCalendarNames(): void {
   originalMonthNames = { ...CONFIG.PF2E.worldClock.AR.Months };
   originalWeekdayNames = { ...(CONFIG.PF2E.worldClock as any).AG.Weekdays };
-  console.log("wat", CONFIG.PF2E.worldClock);
 
   Object.assign(CONFIG.PF2E.worldClock.AR, {
     Months: {
