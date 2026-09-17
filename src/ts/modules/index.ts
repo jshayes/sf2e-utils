@@ -77,6 +77,10 @@ import {
   registerCcmCardLayerRefreshModule,
   unregisterCcmCardLayerRefreshModule,
 } from "./ccmCardLayerRefresh";
+import {
+  registerCcmCardLayerVisibilityModule,
+  unregisterCcmCardLayerVisibilityModule,
+} from "./ccmCardLayerVisibility";
 
 export const moduleMacros = {
   combatManager: combatManagerMacros,
@@ -90,6 +94,7 @@ export const moduleMacros = {
 export function registerModules() {
   registerCardCounterModule();
   registerCcmCardLayerRefreshModule();
+  registerCcmCardLayerVisibilityModule();
   registerClickScriptRegionModule();
   registerCombatManagerModule();
   registerDiceSoNiceModule();
@@ -112,6 +117,7 @@ export function registerModules() {
 export function unregisterModules() {
   unregisterCardCounterModule();
   unregisterCcmCardLayerRefreshModule();
+  unregisterCcmCardLayerVisibilityModule();
   unregisterClickScriptRegionModule();
   unregisterCombatManagerModule();
   unregisterDiceSoNiceModule();
